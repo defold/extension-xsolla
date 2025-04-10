@@ -1,0 +1,15 @@
+[library]
+include_dirs = xsolla
+
+[project]
+title = Xsolla
+
+[bootstrap]
+main_collection = /example/example.collectionc
+
+[script]
+shared_state = 1
+
+[websocket]
+debug = 2
+
