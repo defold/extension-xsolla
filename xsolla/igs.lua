@@ -99,27 +99,88 @@ local function http(callback, url_path, query_params, method, post_data, retry_p
 end
 
 
+--- Create create_update_attribute data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * admin_attribute_external_id - [string] Unique attribute ID. The `external_id` may only contain lowercase Latin alphanumeric characters, dashes, and underscores.
+--   * admin_attribute_name - [object] Object with localizations for attribute's name. Keys are specified in ISO 3166-1.
+-- @example
+-- {
+--   external_id = "genre",
+--   name = 
+--   {
+--     en = "Genre",
+--     de = "Genre",
+--   },
+-- }
+
 function M.body_create_update_attribute(t)
+    assert(t)
     assert(t.external_id)
     assert(t.name)
     return json.encode({
-        ["external_id"] = t.external_id,
-        ["name"] = t.name,
-  })
+        ["admin_attribute_external_id"] = t.admin_attribute_external_id,
+        ["admin_attribute_name"] = t.admin_attribute_name,
+    })
 end
 
 
+--- Create create_update_attribute_value data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * value_external_id - [string] Unique value ID for an attribute. The `external_id` may only contain lowercase Latin alphanumeric characters, dashes, and underscores.
+--   * value_name - [object] Object with localizations of the value's name. Keys are specified in ISO 3166-1.
+-- @example
+-- {
+--   external_id = "weapon_class_sword_value",
+--   value = 
+--   {
+--     en = "Sword",
+--     de = "Schwert",
+--   },
+-- }
+
 function M.body_create_update_attribute_value(t)
+    assert(t)
     assert(t.external_id)
     assert(t.value)
     return json.encode({
-        ["external_id"] = t.external_id,
-        ["value"] = t.value,
-  })
+        ["value_external_id"] = t.value_external_id,
+        ["value_name"] = t.value_name,
+    })
 end
 
 
+--- Create personalized_catalog_create_update_body data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * name - [string] Readable name of a rule. Used to display a rule in Publisher Account.
+--   * is_enabled - [boolean] If rule is enabled.
+--   * is_satisfied_for_unauth - [boolean] Whether the item is displayed to unauthorized users. If `true`, the item is displayed to the unauthorized user regardless of catalog display rules. `false` by default.
+--   * attribute_conditions - [oneof] 
+--   * items - [array] 
+-- @example
+-- {
+--   name = "Ork race armor rule",
+--   is_enabled = true,
+--   attribute_conditions = 
+--   {
+--     {
+--       attribute = "race",
+--       operator = "eq",
+--       value = "ork",
+--       type = "string",
+--       can_be_missing = false,
+--     },
+--   },
+--   items = 
+--   {
+--     {
+--       item_id = 1,
+--     },
+--   },
+--   is_satisfied_for_unauth = false,
+-- }
+
 function M.body_personalized_catalog_create_update_body(t)
+    assert(t)
     assert(t.name)
     assert(t.is_enabled)
     assert(t.attribute_conditions)
@@ -130,65 +191,302 @@ function M.body_personalized_catalog_create_update_body(t)
         ["is_satisfied_for_unauth"] = t.is_satisfied_for_unauth,
         ["attribute_conditions"] = t.attribute_conditions,
         ["items"] = t.items,
-  })
+    })
 end
 
 
+--- Create bundles_bundle data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * bundles_sku - [string] Unique item ID. The SKU may only contain lowercase Latin alphanumeric characters, periods, dashes, and underscores.
+--   * bundles_admin_name_two_letter_locale - [object] Object with localizations for item's name. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * bundles_groups_request - [array] Groups the item belongs to.
+-- Note. The string value refers to group `external_id`.
+--   * bundles_admin_post_put_attributes - [array] List of attributes.
+-- Attention. You can't specify more than 20 attributes for the item. Any attempts to exceed the limit result in an error.
+--   * bundles_admin_description_two_letter_locale - [object] Object with localizations for item's description. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * bundles_admin_long_description_two_letter_locale - [object] Object with localizations for long description of item. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * bundles_image_url - [string] Image URL.
+--   * bundles_prices - [array] Prices in real currencies.
+--   * vc_prices - [allof] The specified bundle.
+--   * bundles_admin_content_request - [array] The specified bundle.
+--   * value_is_free - [boolean] If `true`, the item is free.
+--   * bundles_is_enabled - [boolean] If disabled, the item can't be found and purchased.
+--   * bundles_is_show_in_store - [boolean] Item is available for purchase.
+--   * media_list - [allof] The specified bundle.
+--   * bundles_order - [integer] Bundle's order priority in the list.
+--   * bundles_admin_regions - [array] The specified bundle.
+--   * item_limit - [object] Item limits.
+--   * item_periods - [array] Item sales period.
+--   * item_custom_attributes - [object] A JSON object containing item attributes and values. Attributes allow you to add more info to items like the player's required level to use the item. Attributes enrich your game's internal logic and are accessible through dedicated GET methods and webhooks.
+-- @example
+-- {
+--   sku = "com.xsolla.armour_chest_1",
+--   name = 
+--   {
+--     en-US = "Chest of armour",
+--     de-DE = "Brustpanzer",
+--   },
+--   is_enabled = true,
+--   is_free = true,
+--   order = 1,
+--   long_description = 
+--   {
+--     en-US = "Chest of armour for soldiers",
+--     de-DE = "Brustpanzer für Soldaten",
+--   },
+--   description = 
+--   {
+--     en-US = "Chest of armour for soldiers",
+--     de-DE = "Brustpanzer für Soldaten",
+--   },
+--   image_url = "https://picture.bundle-with-many-stuff.png",
+--   media_list = 
+--   {
+--     {
+--       type = "image",
+--       url = "https://test.com/image0",
+--     },
+--     {
+--       type = "image",
+--       url = "https://test.com/image1",
+--     },
+--   },
+--   groups = 
+--   {
+--     "chests",
+--   },
+--   attributes = 
+--   {
+--     attributes = 
+--     {
+--       {
+--         external_id = "class",
+--         name = 
+--         {
+--           en-US = "Class",
+--         },
+--         values = 
+--         {
+--           {
+--             external_id = "soldier",
+--             value = 
+--             {
+--               en-US = "Soldier",
+--             },
+--           },
+--           {
+--             external_id = "officer",
+--             value = 
+--             {
+--               en-US = "Officer",
+--             },
+--           },
+--         },
+--       },
+--     },
+--   },
+--   prices = 
+--   {
+--     {
+--       currency = "USD",
+--       amount = 9.99,
+--       is_default = true,
+--       is_enabled = true,
+--     },
+--     {
+--       currency = "EUR",
+--       amount = 9.99,
+--       is_default = false,
+--       is_enabled = true,
+--     },
+--   },
+--   vc_prices = nil,
+--   content = 
+--   {
+--     {
+--       sku = "com.xsolla.iron_gloves_1",
+--       quantity = 1,
+--     },
+--     {
+--       sku = "com.xsolla.iron_boots_1",
+--       quantity = 1,
+--     },
+--     {
+--       sku = "com.xsolla.iron_shield_1",
+--       quantity = 1,
+--     },
+--     {
+--       sku = "com.xsolla.iron_armour_1",
+--       quantity = 1,
+--     },
+--     {
+--       sku = "com.xsolla.iron_helmet_1",
+--       quantity = 1,
+--     },
+--   },
+--   limits = 
+--   {
+--     per_user = nil,
+--     per_item = nil,
+--   },
+--   periods = 
+--   {
+--     {
+--       date_from = "2020-08-11T10:00:00+03:00",
+--       date_until = "2020-08-11T20:00:00+03:00",
+--     },
+--   },
+--   custom_attributes = 
+--   {
+--     type = "lootbox",
+--     purchased = 0,
+--   },
+-- }
+
 function M.body_bundles_bundle(t)
+    assert(t)
     assert(t.sku)
     assert(t.name)
     assert(t.description)
     return json.encode({
-        ["sku"] = t.sku,
-        ["name"] = t.name,
-        ["groups"] = t.groups,
-        ["attributes"] = t.attributes,
-        ["description"] = t.description,
-        ["long_description"] = t.long_description,
-        ["image_url"] = t.image_url,
-        ["prices"] = t.prices,
+        ["bundles_sku"] = t.bundles_sku,
+        ["bundles_admin_name_two_letter_locale"] = t.bundles_admin_name_two_letter_locale,
+        ["bundles_groups_request"] = t.bundles_groups_request,
+        ["bundles_admin_post_put_attributes"] = t.bundles_admin_post_put_attributes,
+        ["bundles_admin_description_two_letter_locale"] = t.bundles_admin_description_two_letter_locale,
+        ["bundles_admin_long_description_two_letter_locale"] = t.bundles_admin_long_description_two_letter_locale,
+        ["bundles_image_url"] = t.bundles_image_url,
+        ["bundles_prices"] = t.bundles_prices,
         ["vc_prices"] = t.vc_prices,
-        ["content"] = t.content,
-        ["is_free"] = t.is_free,
-        ["is_enabled"] = t.is_enabled,
-        ["is_show_in_store"] = t.is_show_in_store,
+        ["bundles_admin_content_request"] = t.bundles_admin_content_request,
+        ["value_is_free"] = t.value_is_free,
+        ["bundles_is_enabled"] = t.bundles_is_enabled,
+        ["bundles_is_show_in_store"] = t.bundles_is_show_in_store,
         ["media_list"] = t.media_list,
-        ["order"] = t.order,
-        ["regions"] = t.regions,
-        ["limits"] = t.limits,
-        ["periods"] = t.periods,
-        ["custom_attributes"] = t.custom_attributes,
-  })
+        ["bundles_order"] = t.bundles_order,
+        ["bundles_admin_regions"] = t.bundles_admin_regions,
+        ["item_limit"] = t.item_limit,
+        ["item_periods"] = t.item_periods,
+        ["item_custom_attributes"] = t.item_custom_attributes,
+    })
 end
 
 
+--- Create cart_payment_fill_cart_json_model data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * items - [array] List of items.
+-- @example
+
 function M.body_cart_payment_fill_cart_json_model(t)
+    assert(t)
     assert(t.items)
     return json.encode({
         ["items"] = t.items,
-  })
+    })
 end
 
+
+--- Create cart_payment_put_item_by_cart_idjsonmodel data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * quantity - [number] Item quantity.
+-- @example
 
 function M.body_cart_payment_put_item_by_cart_idjsonmodel(t)
+    assert(t)
     return json.encode({
         ["quantity"] = t.quantity,
-  })
+    })
 end
 
 
+--- Create cart_payment_create_order_by_cart_idjsonmodel data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * currency - [string] Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).
+--   * locale - [string] Response language.
+--   * sandbox - [boolean] Creates an order in the sandbox mode. The option is available for those users who are specified in the list of company users.
+--   * settings - [object] Settings for configuring payment process and the payment UI for a user.
+--   * custom_parameters - [object] Project specific parameters.
+-- @example
+-- {
+--   sandbox = true,
+--   settings = 
+--   {
+--     ui = 
+--     {
+--       theme = "63295a9a2e47fab76f7708e1",
+--       desktop = 
+--       {
+--         header = 
+--         {
+--           is_visible = true,
+--           visible_logo = true,
+--           visible_name = true,
+--           visible_purchase = true,
+--           type = "normal",
+--           close_button = false,
+--         },
+--       },
+--     },
+--   },
+--   custom_parameters = 
+--   {
+--     character_id = "ingameUsername",
+--   },
+-- }
+
 function M.body_cart_payment_create_order_by_cart_idjsonmodel(t)
+    assert(t)
     return json.encode({
         ["currency"] = t.currency,
         ["locale"] = t.locale,
         ["sandbox"] = t.sandbox,
         ["settings"] = t.settings,
         ["custom_parameters"] = t.custom_parameters,
-  })
+    })
 end
 
 
+--- Create cart_payment_create_order_with_specified_item_idjsonmodel data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * currency - [string] Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).
+--   * locale - [string] Response language.
+--   * sandbox - [boolean] Creates an order in the sandbox mode. The option is available for those users who are specified in the list of company users.
+--   * quantity - [integer] Item quantity.
+--   * promo_code - [string] Redeems a code of a promo code promotion with payment.
+--   * settings - [object] Settings for configuring payment process and the payment UI for a user.
+--   * custom_parameters - [object] Project specific parameters.
+-- @example
+-- {
+--   sandbox = true,
+--   quantity = 5,
+--   promo_code = "discount_code",
+--   settings = 
+--   {
+--     ui = 
+--     {
+--       theme = "63295a9a2e47fab76f7708e1",
+--       desktop = 
+--       {
+--         header = 
+--         {
+--           is_visible = true,
+--           visible_logo = true,
+--           visible_name = true,
+--           visible_purchase = true,
+--           type = "normal",
+--           close_button = false,
+--         },
+--       },
+--     },
+--   },
+--   custom_parameters = 
+--   {
+--     character_id = "ingameUsername",
+--   },
+-- }
+
 function M.body_cart_payment_create_order_with_specified_item_idjsonmodel(t)
+    assert(t)
     return json.encode({
         ["currency"] = t.currency,
         ["locale"] = t.locale,
@@ -197,235 +495,546 @@ function M.body_cart_payment_create_order_with_specified_item_idjsonmodel(t)
         ["promo_code"] = t.promo_code,
         ["settings"] = t.settings,
         ["custom_parameters"] = t.custom_parameters,
-  })
+    })
 end
 
 
+--- Create admin_order_search data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * limit - [integer] A limit on the number of orders included in the response.
+--   * offset - [integer] Number of the order from which the list is generated (the count starts from 0).
+--   * created_date_from - [string] Start date or date-time of the order creation period per [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
+--   * created_date_until - [string] End date or date-time of the order creation period per [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601).
+-- @example
+-- {
+--   offset = 0,
+--   limit = 5,
+--   created_date_from = "2018-01-07",
+--   created_date_until = "2018-01-09T16:00:00+03:00",
+-- }
+
 function M.body_admin_order_search(t)
+    assert(t)
     return json.encode({
         ["limit"] = t.limit,
         ["offset"] = t.offset,
         ["created_date_from"] = t.created_date_from,
         ["created_date_until"] = t.created_date_until,
-  })
+    })
 end
 
 
+--- Create cart_payment_admin_create_payment_token data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * cart_payment_settings_sandbox - [boolean] Set to `true` to test out the payment process. In this case, use https://sandbox-secure.xsolla.com to access the test payment UI.
+--   * cart_payment_admin_user_request_body - [object] 
+--   * cart_admin_payment - [object] 
+--   * settings - [object] Settings for configuring payment process and the payment UI for a user.
+--   * cart_payment_custom_parameters - [object] Your custom parameters represented as a valid JSON set of key-value pairs.
+-- 
+-- You can pass additional parameters through this field to configure anti-fraud filters. [See Pay Station documentation](https://developers.xsolla.com/doc/pay-station/features/antifraud/).
+-- @example
+
 function M.body_cart_payment_admin_create_payment_token(t)
+    assert(t)
     assert(t.user)
     assert(t.purchase)
     return json.encode({
-        ["sandbox"] = t.sandbox,
-        ["user"] = t.user,
-        ["purchase"] = t.purchase,
+        ["cart_payment_settings_sandbox"] = t.cart_payment_settings_sandbox,
+        ["cart_payment_admin_user_request_body"] = t.cart_payment_admin_user_request_body,
+        ["cart_admin_payment"] = t.cart_admin_payment,
         ["settings"] = t.settings,
-        ["custom_parameters"] = t.custom_parameters,
-  })
+        ["cart_payment_custom_parameters"] = t.cart_payment_custom_parameters,
+    })
 end
 
 
+--- Create cart_payment_admin_fill_cart_json_model data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * country - [string] Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/). 
+-- Example: `country=US`
+--   * currency - [string] The item price currency displayed in the cart. Three-letter code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).
+--   * items - [array] 
+-- @example
+
 function M.body_cart_payment_admin_fill_cart_json_model(t)
+    assert(t)
     assert(t.items)
     return json.encode({
         ["country"] = t.country,
         ["currency"] = t.currency,
         ["items"] = t.items,
-  })
+    })
 end
 
+
+--- Create update_upsell data structure
+-- @param t Table with properties.
+-- @example
 
 function M.body_update_upsell(t)
-    return json.encode({
-  })
+    assert(t)
+    return json.encode(t)
 end
 
+
+--- Create create_upsell data structure
+-- @param t Table with properties.
+-- @example
 
 function M.body_create_upsell(t)
-    return json.encode({
-  })
+    assert(t)
+    return json.encode(t)
 end
 
 
+--- Create game_keys_create_update_game_model data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * sku - [string] Unique item ID. The SKU may only contain lowercase Latin alphanumeric characters, periods, dashes, and underscores.
+--   * game_keys_admin_name_two_letter_locale - [object] Object with localizations for item's name. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * game_keys_admin_description_two_letter_locale - [object] Object with localizations for item's description. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * game_keys_admin_long_description_two_letter_locale - [object] Object with localizations for long description of item. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * image_url - [string] Image URL.
+--   * media_list - [array] Game additional assets such as screenshots, gameplay video, etc.
+--   * order - [integer] Game order priority in the list.
+--   * groups - [array] Groups the item belongs to.
+--   * game_keys_admin_post_put_attributes - [array] List of attributes.
+-- Attention. You can't specify more than 20 attributes for the item. Any attempts to exceed the limit result in an error.
+--   * is_enabled - [boolean] If disabled, item cannot be purchased and accessed through inventory.
+--   * is_show_in_store - [boolean] Item is available for purchase.
+--   * unit_items - [array] Game keys for different DRMs.
+-- @example
+
 function M.body_game_keys_create_update_game_model(t)
+    assert(t)
     assert(t.sku)
     assert(t.name)
     assert(t.unit_items)
     return json.encode({
         ["sku"] = t.sku,
-        ["name"] = t.name,
-        ["description"] = t.description,
-        ["long_description"] = t.long_description,
+        ["game_keys_admin_name_two_letter_locale"] = t.game_keys_admin_name_two_letter_locale,
+        ["game_keys_admin_description_two_letter_locale"] = t.game_keys_admin_description_two_letter_locale,
+        ["game_keys_admin_long_description_two_letter_locale"] = t.game_keys_admin_long_description_two_letter_locale,
         ["image_url"] = t.image_url,
         ["media_list"] = t.media_list,
         ["order"] = t.order,
         ["groups"] = t.groups,
-        ["attributes"] = t.attributes,
+        ["game_keys_admin_post_put_attributes"] = t.game_keys_admin_post_put_attributes,
         ["is_enabled"] = t.is_enabled,
         ["is_show_in_store"] = t.is_show_in_store,
         ["unit_items"] = t.unit_items,
-  })
+    })
 end
 
 
+--- Create physical_items_create_update_physical_good_model data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * sku - [string] Object with physical good data.
+--   * physical_items_admin_name_two_letter_locale - [object] Object with localizations for item's name. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * physical_items_admin_description_two_letter_locale - [object] Object with localizations for item's description. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * physical_items_admin_long_description_two_letter_locale - [object] Object with localizations for long description of item. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * image_url - [string] Object with physical good data.
+--   * media_list - [array] Object with physical good data.
+--   * groups - [array] Object with physical good data.
+--   * physical_items_admin_post_put_attributes - [array] List of attributes.
+-- Attention. You can't specify more than 20 attributes for the item. Any attempts to exceed the limit result in an error.
+--   * physical_items_admin_prices - [array] Object with physical good data.
+--   * physical_items_admin_create_vc_prices - [array] Object with physical good data.
+--   * is_enabled - [boolean] Object with physical good data.
+--   * is_deleted - [boolean] Object with physical good data.
+--   * value_is_free - [boolean] If `true`, the item is free.
+--   * order - [number] Object with physical good data.
+--   * tax_categories - [array] Object with physical good data.
+--   * physical_items_admin_pre_order - [object] Object with physical good data.
+--   * physical_items_admin_regions - [array] Object with physical good data.
+--   * weight - [object] Weight of the item.
+--   * item_limit - [object] Item limits.
+-- @example
+-- {
+--   sku = "com.xsolla.t-shirt_1",
+--   name = 
+--   {
+--     en = "T-Shirt",
+--     de = "T-Shirt",
+--   },
+--   is_enabled = true,
+--   is_free = false,
+--   order = 1,
+--   description = 
+--   {
+--     en = "Short Sleeve T-shirt",
+--     de = "Kurzarm-T-Shirt",
+--   },
+--   attributes = 
+--   {
+--     {
+--       external_id = "Color",
+--       name = 
+--       {
+--         en = "Color",
+--       },
+--       values = 
+--       {
+--         {
+--           external_id = "Color-black",
+--           value = 
+--           {
+--             en-US = "Black",
+--           },
+--         },
+--       },
+--     },
+--   },
+--   prices = 
+--   {
+--     {
+--       amount = 20,
+--       currency = "EUR",
+--       is_enabled = true,
+--       is_default = false,
+--     },
+--     {
+--       amount = 35,
+--       currency = "USD",
+--       is_enabled = true,
+--       is_default = true,
+--     },
+--   },
+--   tax_categories = 
+--   {
+--     "PG00005",
+--   },
+--   limits = 
+--   {
+--     per_user = 
+--     {
+--       total = 5,
+--     },
+--     per_item = nil,
+--   },
+-- }
+
 function M.body_physical_items_create_update_physical_good_model(t)
+    assert(t)
     assert(t.sku)
     return json.encode({
         ["sku"] = t.sku,
-        ["name"] = t.name,
-        ["description"] = t.description,
-        ["long_description"] = t.long_description,
+        ["physical_items_admin_name_two_letter_locale"] = t.physical_items_admin_name_two_letter_locale,
+        ["physical_items_admin_description_two_letter_locale"] = t.physical_items_admin_description_two_letter_locale,
+        ["physical_items_admin_long_description_two_letter_locale"] = t.physical_items_admin_long_description_two_letter_locale,
         ["image_url"] = t.image_url,
         ["media_list"] = t.media_list,
         ["groups"] = t.groups,
-        ["attributes"] = t.attributes,
-        ["prices"] = t.prices,
-        ["vc_prices"] = t.vc_prices,
+        ["physical_items_admin_post_put_attributes"] = t.physical_items_admin_post_put_attributes,
+        ["physical_items_admin_prices"] = t.physical_items_admin_prices,
+        ["physical_items_admin_create_vc_prices"] = t.physical_items_admin_create_vc_prices,
         ["is_enabled"] = t.is_enabled,
         ["is_deleted"] = t.is_deleted,
-        ["is_free"] = t.is_free,
+        ["value_is_free"] = t.value_is_free,
         ["order"] = t.order,
         ["tax_categories"] = t.tax_categories,
-        ["pre_order"] = t.pre_order,
-        ["regions"] = t.regions,
+        ["physical_items_admin_pre_order"] = t.physical_items_admin_pre_order,
+        ["physical_items_admin_regions"] = t.physical_items_admin_regions,
         ["weight"] = t.weight,
-        ["limits"] = t.limits,
-  })
+        ["item_limit"] = t.item_limit,
+    })
 end
 
 
+--- Create physical_items_patch_physical_good_model data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * sku - [string] Object with physical good data.
+--   * physical_items_admin_name_two_letter_locale - [object] Object with localizations for item's name. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * physical_items_admin_description_two_letter_locale - [object] Object with localizations for item's description. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * physical_items_admin_long_description_two_letter_locale - [object] Object with localizations for long description of item. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * image_url - [string] Object with physical good data.
+--   * media_list - [array] Object with physical good data.
+--   * groups - [array] Object with physical good data.
+--   * physical_items_admin_post_put_attributes - [array] List of attributes.
+-- Attention. You can't specify more than 20 attributes for the item. Any attempts to exceed the limit result in an error.
+--   * physical_items_admin_prices - [array] Object with physical good data.
+--   * physical_items_admin_create_vc_prices - [array] Object with physical good data.
+--   * is_enabled - [boolean] Object with physical good data.
+--   * is_deleted - [boolean] Object with physical good data.
+--   * value_is_free - [boolean] If `true`, the item is free.
+--   * order - [number] Object with physical good data.
+--   * tax_categories - [array] Object with physical good data.
+--   * physical_items_admin_pre_order - [object] Object with physical good data.
+--   * physical_items_admin_regions - [array] Object with physical good data.
+--   * weight - [object] Weight of the item.
+--   * item_limit - [object] Item limits.
+-- @example
+
 function M.body_physical_items_patch_physical_good_model(t)
+    assert(t)
     assert(t.True)
     return json.encode({
         ["sku"] = t.sku,
-        ["name"] = t.name,
-        ["description"] = t.description,
-        ["long_description"] = t.long_description,
+        ["physical_items_admin_name_two_letter_locale"] = t.physical_items_admin_name_two_letter_locale,
+        ["physical_items_admin_description_two_letter_locale"] = t.physical_items_admin_description_two_letter_locale,
+        ["physical_items_admin_long_description_two_letter_locale"] = t.physical_items_admin_long_description_two_letter_locale,
         ["image_url"] = t.image_url,
         ["media_list"] = t.media_list,
         ["groups"] = t.groups,
-        ["attributes"] = t.attributes,
-        ["prices"] = t.prices,
-        ["vc_prices"] = t.vc_prices,
+        ["physical_items_admin_post_put_attributes"] = t.physical_items_admin_post_put_attributes,
+        ["physical_items_admin_prices"] = t.physical_items_admin_prices,
+        ["physical_items_admin_create_vc_prices"] = t.physical_items_admin_create_vc_prices,
         ["is_enabled"] = t.is_enabled,
         ["is_deleted"] = t.is_deleted,
-        ["is_free"] = t.is_free,
+        ["value_is_free"] = t.value_is_free,
         ["order"] = t.order,
         ["tax_categories"] = t.tax_categories,
-        ["pre_order"] = t.pre_order,
-        ["regions"] = t.regions,
+        ["physical_items_admin_pre_order"] = t.physical_items_admin_pre_order,
+        ["physical_items_admin_regions"] = t.physical_items_admin_regions,
         ["weight"] = t.weight,
-        ["limits"] = t.limits,
-  })
+        ["item_limit"] = t.item_limit,
+    })
 end
 
+
+--- Create promotions_redeem_coupon_model data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * coupon_code - [string] Unique coupon code. Contains letters and numbers.
+--   * promotions_selected_unit_items - [object] The reward that is selected by a user.
+-- Object key is an SKU of a unit, and value is an SKU of one of the items in a unit.
+-- @example
 
 function M.body_promotions_redeem_coupon_model(t)
+    assert(t)
     return json.encode({
         ["coupon_code"] = t.coupon_code,
-        ["selected_unit_items"] = t.selected_unit_items,
-  })
+        ["promotions_selected_unit_items"] = t.promotions_selected_unit_items,
+    })
 end
 
+
+--- Create promotions_coupon_create data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * promotions_coupon_external_id - [string] Unique promotion ID. The `external_id` may only contain lowercase Latin alphanumeric characters, periods, dashes, and underscores.
+--   * promotions_coupon_date_start - [string] Date when your promotion will be started.
+--   * promotions_coupon_date_end - [string] Date when your promotion will be finished. Can be `null`.  If `date_end` is `null`, promotion will be unlimited by time.
+--   * promotions_coupon_name - [object] Name of promotion. Should contain key/value pairs
+-- where key is a locale with "^[a-z]{2}-[A-Z]{2}$" format, value is string.
+--   * promotions_coupon_bonus - [array] 
+--   * promotions_coupon_redeem_total_limit - [integer] Limits total numbers of coupons.
+--   * promotions_coupon_redeem_user_limit - [integer] Limits total numbers of coupons redeemed by single user.
+--   * promotions_redeem_code_limit - [integer] Number of redemptions per code.
+--   * attribute_conditions - [oneof] Conditions which are compared to user attribute values.
+-- All conditions must be met for the action to take an effect.
+-- @example
 
 function M.body_promotions_coupon_create(t)
+    assert(t)
     assert(t.external_id)
     assert(t.name)
     return json.encode({
-        ["external_id"] = t.external_id,
-        ["date_start"] = t.date_start,
-        ["date_end"] = t.date_end,
-        ["name"] = t.name,
-        ["bonus"] = t.bonus,
-        ["redeem_total_limit"] = t.redeem_total_limit,
-        ["redeem_user_limit"] = t.redeem_user_limit,
-        ["redeem_code_limit"] = t.redeem_code_limit,
+        ["promotions_coupon_external_id"] = t.promotions_coupon_external_id,
+        ["promotions_coupon_date_start"] = t.promotions_coupon_date_start,
+        ["promotions_coupon_date_end"] = t.promotions_coupon_date_end,
+        ["promotions_coupon_name"] = t.promotions_coupon_name,
+        ["promotions_coupon_bonus"] = t.promotions_coupon_bonus,
+        ["promotions_coupon_redeem_total_limit"] = t.promotions_coupon_redeem_total_limit,
+        ["promotions_coupon_redeem_user_limit"] = t.promotions_coupon_redeem_user_limit,
+        ["promotions_redeem_code_limit"] = t.promotions_redeem_code_limit,
         ["attribute_conditions"] = t.attribute_conditions,
-  })
+    })
 end
 
+
+--- Create promotions_coupon_update data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * promotions_coupon_date_start - [string] Date when your promotion will be started.
+--   * promotions_coupon_date_end - [string] Date when your promotion will be finished. Can be `null`.  If `date_end` is `null`, promotion will be unlimited by time.
+--   * promotions_coupon_name - [object] Name of promotion. Should contain key/value pairs
+-- where key is a locale with "^[a-z]{2}-[A-Z]{2}$" format, value is string.
+--   * promotions_coupon_bonus - [array] 
+--   * promotions_coupon_redeem_total_limit - [integer] Limits total numbers of coupons.
+--   * promotions_coupon_redeem_user_limit - [integer] Limits total numbers of coupons redeemed by single user.
+--   * promotions_redeem_code_limit - [integer] Number of redemptions per code.
+--   * attribute_conditions - [oneof] Conditions which are compared to user attribute values.
+-- All conditions must be met for the action to take an effect.
+-- @example
 
 function M.body_promotions_coupon_update(t)
+    assert(t)
     assert(t.name)
     return json.encode({
-        ["date_start"] = t.date_start,
-        ["date_end"] = t.date_end,
-        ["name"] = t.name,
-        ["bonus"] = t.bonus,
-        ["redeem_total_limit"] = t.redeem_total_limit,
-        ["redeem_user_limit"] = t.redeem_user_limit,
-        ["redeem_code_limit"] = t.redeem_code_limit,
+        ["promotions_coupon_date_start"] = t.promotions_coupon_date_start,
+        ["promotions_coupon_date_end"] = t.promotions_coupon_date_end,
+        ["promotions_coupon_name"] = t.promotions_coupon_name,
+        ["promotions_coupon_bonus"] = t.promotions_coupon_bonus,
+        ["promotions_coupon_redeem_total_limit"] = t.promotions_coupon_redeem_total_limit,
+        ["promotions_coupon_redeem_user_limit"] = t.promotions_coupon_redeem_user_limit,
+        ["promotions_redeem_code_limit"] = t.promotions_redeem_code_limit,
         ["attribute_conditions"] = t.attribute_conditions,
-  })
+    })
 end
 
+
+--- Create promotions_create_coupon_promocode_code data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * promotions_coupon_code - [string] Unique case sensitive code. Contains letters and numbers.
+-- @example
 
 function M.body_promotions_create_coupon_promocode_code(t)
+    assert(t)
     return json.encode({
-        ["coupon_code"] = t.coupon_code,
-  })
+        ["promotions_coupon_code"] = t.promotions_coupon_code,
+    })
 end
 
+
+--- Create promotions_redeem_promo_code_model data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * coupon_code - [string] Unique code of promo code. Contains letters and numbers.
+--   * cart - [object] 
+--   * promotions_selected_unit_items - [object] The reward that is selected by a user.
+-- Object key is an SKU of a unit, and value is an SKU of one of the items in a unit.
+-- @example
 
 function M.body_promotions_redeem_promo_code_model(t)
+    assert(t)
     return json.encode({
         ["coupon_code"] = t.coupon_code,
         ["cart"] = t.cart,
-        ["selected_unit_items"] = t.selected_unit_items,
-  })
+        ["promotions_selected_unit_items"] = t.promotions_selected_unit_items,
+    })
 end
 
+
+--- Create promotions_cancel_promo_code_model data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * cart - [object] 
+-- @example
 
 function M.body_promotions_cancel_promo_code_model(t)
+    assert(t)
     return json.encode({
         ["cart"] = t.cart,
-  })
+    })
 end
 
+
+--- Create promotions_promocode_create data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * promotions_coupon_external_id - [string] Unique promotion ID. The `external_id` may only contain lowercase Latin alphanumeric characters, periods, dashes, and underscores.
+--   * promotions_coupon_date_start - [string] Date when your promotion will be started.
+--   * promotions_coupon_date_end - [string] Date when your promotion will be finished. Can be `null`.  If `date_end` is `null`, promotion will be unlimited by time.
+--   * promotions_coupon_name - [object] Name of promotion. Should contain key/value pairs
+-- where key is a locale with "^[a-z]{2}-[A-Z]{2}$" format, value is string.
+--   * promotions_coupon_bonus - [array] 
+--   * promotions_coupon_redeem_total_limit - [integer] Limits total numbers of coupons.
+--   * promotions_coupon_redeem_user_limit - [integer] Limits total numbers of coupons redeemed by single user.
+--   * promotions_redeem_code_limit - [integer] Number of redemptions per code.
+--   * discount - [object] 
+--   * promotions_discounted_items - [array] List of items that are discounted by a promo code.
+--   * attribute_conditions - [oneof] Conditions which are compared to user attribute values.
+-- All conditions must be met for the action to take an effect.
+--   * price_conditions_promocode - [array] Array of objects with conditions that set the price range for applying the promotion to the entire cart.
+-- 
+-- The total price of all items in the user's cart is compared with the price range specified in the condition. [Bonuses](/api/igs/operation/create-promo-code/#!path=bonus&t=request) and [discounts](/api/igs/operation/create-promo-code/#!path=discount&t=request) are applied to all items in the cart if the price of the cart meets the specified condition.
+-- 
+-- If you pass this array, set the value of the [discounted_items](/api/igs/operation/create-promo-code/#!path=discounted_items&t=request) array to `null`.
+--   * item_price_conditions_promocode - [array] Array of objects with conditions that set the price range for applying the promotion to certain items in the cart.
+-- 
+-- The price of each item in the user's cart is compared with the price range specified in the condition. [Bonuses](/api/igs/operation/create-promo-code/#!path=bonus&t=request) and [discounts](/api/igs/operation/create-promo-code/#!path=discount&t=request) are applied only to those items in the cart whose price meets the condition.
+-- 
+-- If you pass this array, set the value of the [discounted_items](/api/igs/operation/create-promo-code/#!path=discounted_items&t=request) array to `null`.
+--   * excluded_promotions - [array] List of promotion IDs to exclude when applying this promotion. 
+-- Example: `[12, 789]`
+-- @example
 
 function M.body_promotions_promocode_create(t)
+    assert(t)
     assert(t.external_id)
     assert(t.name)
     return json.encode({
-        ["external_id"] = t.external_id,
-        ["date_start"] = t.date_start,
-        ["date_end"] = t.date_end,
-        ["name"] = t.name,
-        ["bonus"] = t.bonus,
-        ["redeem_total_limit"] = t.redeem_total_limit,
-        ["redeem_user_limit"] = t.redeem_user_limit,
-        ["redeem_code_limit"] = t.redeem_code_limit,
+        ["promotions_coupon_external_id"] = t.promotions_coupon_external_id,
+        ["promotions_coupon_date_start"] = t.promotions_coupon_date_start,
+        ["promotions_coupon_date_end"] = t.promotions_coupon_date_end,
+        ["promotions_coupon_name"] = t.promotions_coupon_name,
+        ["promotions_coupon_bonus"] = t.promotions_coupon_bonus,
+        ["promotions_coupon_redeem_total_limit"] = t.promotions_coupon_redeem_total_limit,
+        ["promotions_coupon_redeem_user_limit"] = t.promotions_coupon_redeem_user_limit,
+        ["promotions_redeem_code_limit"] = t.promotions_redeem_code_limit,
         ["discount"] = t.discount,
-        ["discounted_items"] = t.discounted_items,
+        ["promotions_discounted_items"] = t.promotions_discounted_items,
         ["attribute_conditions"] = t.attribute_conditions,
-        ["price_conditions"] = t.price_conditions,
-        ["item_price_conditions"] = t.item_price_conditions,
+        ["price_conditions_promocode"] = t.price_conditions_promocode,
+        ["item_price_conditions_promocode"] = t.item_price_conditions_promocode,
         ["excluded_promotions"] = t.excluded_promotions,
-  })
+    })
 end
 
+
+--- Create promotions_promocode_update data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * promotions_coupon_date_start - [string] Date when your promotion will be started.
+--   * promotions_coupon_date_end - [string] Date when your promotion will be finished. Can be `null`.  If `date_end` is `null`, promotion will be unlimited by time.
+--   * promotions_coupon_name - [object] Name of promotion. Should contain key/value pairs
+-- where key is a locale with "^[a-z]{2}-[A-Z]{2}$" format, value is string.
+--   * promotions_coupon_bonus - [array] 
+--   * promotions_coupon_redeem_total_limit - [integer] Limits total numbers of coupons.
+--   * promotions_coupon_redeem_user_limit - [integer] Limits total numbers of coupons redeemed by single user.
+--   * promotions_redeem_code_limit - [integer] Number of redemptions per code.
+--   * discount - [object] 
+--   * promotions_discounted_items - [array] List of items that are discounted by a promo code.
+--   * attribute_conditions - [oneof] Conditions which are compared to user attribute values.
+-- All conditions must be met for the action to take an effect.
+--   * price_conditions_promocode - [array] Array of objects with conditions that set the price range for applying the promotion to the entire cart.
+-- 
+-- The total price of all items in the user's cart is compared with the price range specified in the condition. [Bonuses](/api/igs/operation/create-promo-code/#!path=bonus&t=request) and [discounts](/api/igs/operation/create-promo-code/#!path=discount&t=request) are applied to all items in the cart if the price of the cart meets the specified condition.
+-- 
+-- If you pass this array, set the value of the [discounted_items](/api/igs/operation/create-promo-code/#!path=discounted_items&t=request) array to `null`.
+--   * item_price_conditions_promocode - [array] Array of objects with conditions that set the price range for applying the promotion to certain items in the cart.
+-- 
+-- The price of each item in the user's cart is compared with the price range specified in the condition. [Bonuses](/api/igs/operation/create-promo-code/#!path=bonus&t=request) and [discounts](/api/igs/operation/create-promo-code/#!path=discount&t=request) are applied only to those items in the cart whose price meets the condition.
+-- 
+-- If you pass this array, set the value of the [discounted_items](/api/igs/operation/create-promo-code/#!path=discounted_items&t=request) array to `null`.
+--   * excluded_promotions - [array] List of promotion IDs to exclude when applying this promotion. 
+-- Example: `[12, 789]`
+-- @example
 
 function M.body_promotions_promocode_update(t)
+    assert(t)
     assert(t.external_id)
     assert(t.name)
     return json.encode({
-        ["date_start"] = t.date_start,
-        ["date_end"] = t.date_end,
-        ["name"] = t.name,
-        ["bonus"] = t.bonus,
-        ["redeem_total_limit"] = t.redeem_total_limit,
-        ["redeem_user_limit"] = t.redeem_user_limit,
-        ["redeem_code_limit"] = t.redeem_code_limit,
+        ["promotions_coupon_date_start"] = t.promotions_coupon_date_start,
+        ["promotions_coupon_date_end"] = t.promotions_coupon_date_end,
+        ["promotions_coupon_name"] = t.promotions_coupon_name,
+        ["promotions_coupon_bonus"] = t.promotions_coupon_bonus,
+        ["promotions_coupon_redeem_total_limit"] = t.promotions_coupon_redeem_total_limit,
+        ["promotions_coupon_redeem_user_limit"] = t.promotions_coupon_redeem_user_limit,
+        ["promotions_redeem_code_limit"] = t.promotions_redeem_code_limit,
         ["discount"] = t.discount,
-        ["discounted_items"] = t.discounted_items,
+        ["promotions_discounted_items"] = t.promotions_discounted_items,
         ["attribute_conditions"] = t.attribute_conditions,
-        ["price_conditions"] = t.price_conditions,
-        ["item_price_conditions"] = t.item_price_conditions,
+        ["price_conditions_promocode"] = t.price_conditions_promocode,
+        ["item_price_conditions_promocode"] = t.item_price_conditions_promocode,
         ["excluded_promotions"] = t.excluded_promotions,
-  })
+    })
 end
 
 
+--- Create promotions_create_update_item_promotion data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * name - [object] Name of promotion. Should contain key/value pairs,
+-- where key is locale with format "^[a-z]{2}-[A-Z]{2}$", value is string.
+--   * date_start - [string] Date when your promotion will be started.
+--   * date_end - [string] Date when your promotion will be finished. Can be `null`.
+--   * discount - [object] Object with promotion data.
+--   * items - [array] Object with promotion data.
+--   * attribute_conditions - [oneof] Object with promotion data.
+--   * price_conditions_discount - [array] Array of objects with conditions that set the price range for applying the promotion.
+--  The promotion applies only to items whose price meets all the conditions in the array. If you pass this array, set the value of the [items](/api/igs/operation/create-item-promotion/#!path=items&t=request) object to `null`.
+--   * promotions_promotion_limits - [object] Promotion limits.
+--   * excluded_promotions - [array] List of promotion IDs to exclude when applying this promotion. 
+-- Example: `[12, 789]`
+-- @example
+
 function M.body_promotions_create_update_item_promotion(t)
+    assert(t)
     assert(t.items)
     assert(t.discount)
     assert(t.name)
@@ -436,14 +1045,31 @@ function M.body_promotions_create_update_item_promotion(t)
         ["discount"] = t.discount,
         ["items"] = t.items,
         ["attribute_conditions"] = t.attribute_conditions,
-        ["price_conditions"] = t.price_conditions,
-        ["limits"] = t.limits,
+        ["price_conditions_discount"] = t.price_conditions_discount,
+        ["promotions_promotion_limits"] = t.promotions_promotion_limits,
         ["excluded_promotions"] = t.excluded_promotions,
-  })
+    })
 end
 
 
+--- Create promotions_create_update_bonus_promotion data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * id - [integer] Promotion ID. Unique promotion identifier within the project.
+--   * date_start - [string] Date when your promotion will be started.
+--   * date_end - [string] Date when your promotion will be finished. Can be `null`. If `date_end` is `null`, promotion will be unlimited by time.
+--   * name - [object] Name of promotion. Should contain key/value pairs where key is a locale with "^[a-z]{2}-[A-Z]{2}$" format, value is string.
+--   * condition - [array] Set of items required to be included in the purchase for applying a promotion. If this parameters is `null`, a promotion will be applied to any purchases within a project.
+--   * attribute_conditions - [oneof] 
+--   * bonus - [array] 
+--   * promotions_promotion_limits - [object] Promotion limits.
+--   * price_conditions_bonus - [array] Array of objects with conditions that set the price range for applying the promotion.
+--  The promotion applies only to items whose price meets all the conditions in the array. If you pass this array, set the value of the [condition](/api/igs/operation/create-bonus-promotion/#!path=condition&t=request) object to `null`.
+--   * excluded_promotions - [array] List of promotion IDs to exclude when applying this promotion. 
+-- Example: `[12, 789]`
+-- @example
+
 function M.body_promotions_create_update_bonus_promotion(t)
+    assert(t)
     assert(t.condition)
     assert(t.bonus)
     assert(t.name)
@@ -455,265 +1081,807 @@ function M.body_promotions_create_update_bonus_promotion(t)
         ["condition"] = t.condition,
         ["attribute_conditions"] = t.attribute_conditions,
         ["bonus"] = t.bonus,
-        ["limits"] = t.limits,
-        ["price_conditions"] = t.price_conditions,
+        ["promotions_promotion_limits"] = t.promotions_promotion_limits,
+        ["price_conditions_bonus"] = t.price_conditions_bonus,
         ["excluded_promotions"] = t.excluded_promotions,
-  })
+    })
 end
 
+
+--- Create virtual_items_currency_admin_create_virtual_item data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * virtual_items_currency_sku - [string] Unique item ID. The SKU may only contain lowercase Latin alphanumeric characters, periods, dashes, and underscores.
+--   * virtual_items_currency_admin_name_two_letter_locale - [object] Object with localizations for item's name. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * virtual_items_currency_admin_description_two_letter_locale - [object] Object with localizations for item's description. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * virtual_items_currency_admin_long_description_two_letter_locale - [object] Object with localizations for long description of item. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * virtual_items_currency_schemas_admin_image_url - [string] Image URL.
+--   * virtual_items_currency_admin_media_list - [array] Item's additional assets such as screenshots, gameplay video and so on.
+--   * virtual_items_currency_admin_groups_create - [array] Groups the item belongs to.
+-- Note. The string value refers to group `external_id`.
+--   * virtual_items_currency_admin_post_put_attributes - [array] List of attributes.
+-- Attention. You can't specify more than 20 attributes for the item. Any attempts to exceed the limit result in an error.
+--   * virtual_items_admin_prices - [array] 
+--   * virtual_items_currency_admin_create_vc_prices - [array] 
+--   * virtual_items_currency_is_enabled - [boolean] 
+--   * virtual_items_currency_is_deleted - [boolean] 
+--   * virtual_items_currency_is_show_in_store - [boolean] 
+--   * value_is_free - [boolean] If `true`, the item is free.
+--   * virtual_items_currency_order - [integer] Defines arrangement order.
+--   * virtual_items_currency_inventory_options - [object] Defines the inventory item options.
+--   * virtual_items_currency_admin_pre_order - [object] 
+--   * virtual_items_currency_admin_regions - [array] 
+--   * item_limit - [object] Item limits.
+--   * item_periods - [array] Item sales period.
+--   * item_custom_attributes - [object] A JSON object containing item attributes and values. Attributes allow you to add more info to items like the player's required level to use the item. Attributes enrich your game's internal logic and are accessible through dedicated GET methods and webhooks.
+-- @example
+-- {
+--   sku = "com.xsolla.sword_1",
+--   name = 
+--   {
+--     en = "Sword",
+--     de = "Schwert",
+--   },
+--   is_enabled = true,
+--   is_free = false,
+--   groups = 
+--   {
+--     "weapons",
+--   },
+--   order = 1,
+--   description = 
+--   {
+--     en = "A sword is a bladed melee weapon intended for cutting or thrusting that is longer than a knife or dagger, consisting of a long blade attached to a hilt.",
+--     de = "Ein Schwert ist eine Nahkampfwaffe mit Klinge, die zum Schneiden oder Stechen bestimmt ist, länger als ein Messer oder Dolch ist und aus einer langen Klinge besteht, die an einem Griff befestigt ist.",
+--   },
+--   prices = 
+--   {
+--     {
+--       amount = 100,
+--       currency = "USD",
+--       is_enabled = true,
+--       is_default = true,
+--     },
+--     {
+--       amount = 200,
+--       currency = "CZK",
+--       country_iso = "CZ",
+--       is_enabled = false,
+--       is_default = true,
+--     },
+--   },
+--   vc_prices = 
+--   {
+--   },
+--   is_show_in_store = true,
+--   attributes = 
+--   {
+--     {
+--       external_id = "craft-materials",
+--       name = 
+--       {
+--         en = "Craft materials",
+--       },
+--       values = 
+--       {
+--         {
+--           external_id = "steel",
+--           value = 
+--           {
+--             en-US = "5",
+--           },
+--         },
+--         {
+--           external_id = "leather",
+--           value = 
+--           {
+--             en-US = "1",
+--           },
+--         },
+--       },
+--     },
+--   },
+--   limits = 
+--   {
+--     per_user = 5,
+--     per_item = 100,
+--   },
+--   periods = 
+--   {
+--     {
+--       date_from = "2020-08-11T10:00:00+03:00",
+--       date_until = "2020-08-11T20:00:00+03:00",
+--     },
+--   },
+--   custom_attributes = 
+--   {
+--     purchased = 0,
+--     attr = "value",
+--   },
+-- }
 
 function M.body_virtual_items_currency_admin_create_virtual_item(t)
+    assert(t)
     return json.encode({
-        ["sku"] = t.sku,
-        ["name"] = t.name,
-        ["description"] = t.description,
-        ["long_description"] = t.long_description,
-        ["image_url"] = t.image_url,
-        ["media_list"] = t.media_list,
-        ["groups"] = t.groups,
-        ["attributes"] = t.attributes,
-        ["prices"] = t.prices,
-        ["vc_prices"] = t.vc_prices,
-        ["is_enabled"] = t.is_enabled,
-        ["is_deleted"] = t.is_deleted,
-        ["is_show_in_store"] = t.is_show_in_store,
-        ["is_free"] = t.is_free,
-        ["order"] = t.order,
-        ["inventory_options"] = t.inventory_options,
-        ["pre_order"] = t.pre_order,
-        ["regions"] = t.regions,
-        ["limits"] = t.limits,
-        ["periods"] = t.periods,
-        ["custom_attributes"] = t.custom_attributes,
-  })
+        ["virtual_items_currency_sku"] = t.virtual_items_currency_sku,
+        ["virtual_items_currency_admin_name_two_letter_locale"] = t.virtual_items_currency_admin_name_two_letter_locale,
+        ["virtual_items_currency_admin_description_two_letter_locale"] = t.virtual_items_currency_admin_description_two_letter_locale,
+        ["virtual_items_currency_admin_long_description_two_letter_locale"] = t.virtual_items_currency_admin_long_description_two_letter_locale,
+        ["virtual_items_currency_schemas_admin_image_url"] = t.virtual_items_currency_schemas_admin_image_url,
+        ["virtual_items_currency_admin_media_list"] = t.virtual_items_currency_admin_media_list,
+        ["virtual_items_currency_admin_groups_create"] = t.virtual_items_currency_admin_groups_create,
+        ["virtual_items_currency_admin_post_put_attributes"] = t.virtual_items_currency_admin_post_put_attributes,
+        ["virtual_items_admin_prices"] = t.virtual_items_admin_prices,
+        ["virtual_items_currency_admin_create_vc_prices"] = t.virtual_items_currency_admin_create_vc_prices,
+        ["virtual_items_currency_is_enabled"] = t.virtual_items_currency_is_enabled,
+        ["virtual_items_currency_is_deleted"] = t.virtual_items_currency_is_deleted,
+        ["virtual_items_currency_is_show_in_store"] = t.virtual_items_currency_is_show_in_store,
+        ["value_is_free"] = t.value_is_free,
+        ["virtual_items_currency_order"] = t.virtual_items_currency_order,
+        ["virtual_items_currency_inventory_options"] = t.virtual_items_currency_inventory_options,
+        ["virtual_items_currency_admin_pre_order"] = t.virtual_items_currency_admin_pre_order,
+        ["virtual_items_currency_admin_regions"] = t.virtual_items_currency_admin_regions,
+        ["item_limit"] = t.item_limit,
+        ["item_periods"] = t.item_periods,
+        ["item_custom_attributes"] = t.item_custom_attributes,
+    })
 end
 
 
+--- Create virtual_items_currency_admin_create_virtual_currency data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * virtual_items_currency_sku - [string] Unique item ID. The SKU may only contain lowercase Latin alphanumeric characters, periods, dashes, and underscores.
+--   * virtual_items_currency_admin_name_two_letter_locale - [object] Object with localizations for item's name. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * virtual_items_currency_admin_description_two_letter_locale - [object] Object with localizations for item's description. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * virtual_items_currency_admin_long_description_two_letter_locale - [object] Object with localizations for long description of item. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * virtual_items_currency_admin_image_url - [string] 
+--   * virtual_items_currency_admin_media_list - [array] Item's additional assets such as screenshots, gameplay video and so on.
+--   * virtual_items_currency_admin_groups_response - [array] Groups the item belongs to.
+--   * virtual_items_currency_admin_post_put_attributes - [array] List of attributes.
+-- Attention. You can't specify more than 20 attributes for the item. Any attempts to exceed the limit result in an error.
+--   * virtual_items_currency_admin_prices - [array] 
+--   * virtual_items_currency_admin_create_vc_prices - [array] 
+--   * virtual_items_currency_is_enabled - [boolean] 
+--   * virtual_items_currency_is_deleted - [boolean] 
+--   * virtual_items_currency_is_show_in_store - [boolean] 
+--   * value_is_free - [boolean] If `true`, the item is free.
+--   * virtual_items_currency_is_hard - [boolean] 
+--   * virtual_items_currency_order - [integer] Defines arrangement order.
+--   * virtual_items_currency_admin_pre_order - [object] 
+--   * virtual_items_currency_admin_regions - [array] 
+--   * item_limit - [object] Item limits.
+--   * item_periods - [array] Item sales period.
+--   * item_custom_attributes - [object] A JSON object containing item attributes and values. Attributes allow you to add more info to items like the player's required level to use the item. Attributes enrich your game's internal logic and are accessible through dedicated GET methods and webhooks.
+-- @example
+-- {
+--   sku = "com.xsolla.coin_1",
+--   name = 
+--   {
+--     en-US = "Gold coin",
+--     de-DE = "Goldmünze",
+--   },
+--   is_enabled = true,
+--   is_free = false,
+--   groups = 
+--   {
+--     "gold",
+--   },
+--   order = 1,
+--   description = 
+--   {
+--     en-US = "The main currency of your kingdom",
+--     de-DE = "Die Hauptwährung deines Königreichs",
+--   },
+--   prices = 
+--   {
+--     {
+--       amount = 100,
+--       currency = "USD",
+--       is_enabled = true,
+--       is_default = true,
+--     },
+--   },
+--   attributes = 
+--   {
+--     {
+--       external_id = "material",
+--       name = 
+--       {
+--         en-US = "Material",
+--       },
+--       values = 
+--       {
+--         {
+--           external_id = "gold",
+--           value = 
+--           {
+--             en-US = "Gold",
+--           },
+--         },
+--       },
+--     },
+--   },
+--   limits = 
+--   {
+--     per_user = 5,
+--     per_item = 10000,
+--   },
+--   periods = 
+--   {
+--     {
+--       date_from = "2020-08-11T10:00:00+03:00",
+--       date_until = "2020-08-11T20:00:00+03:00",
+--     },
+--   },
+--   custom_attributes = 
+--   {
+--     purchased = 0,
+--     attr = "value",
+--   },
+-- }
+
 function M.body_virtual_items_currency_admin_create_virtual_currency(t)
+    assert(t)
     assert(t.sku)
     assert(t.name)
     return json.encode({
-        ["sku"] = t.sku,
-        ["name"] = t.name,
-        ["description"] = t.description,
-        ["long_description"] = t.long_description,
-        ["image_url"] = t.image_url,
-        ["media_list"] = t.media_list,
-        ["groups"] = t.groups,
-        ["attributes"] = t.attributes,
-        ["prices"] = t.prices,
-        ["vc_prices"] = t.vc_prices,
-        ["is_enabled"] = t.is_enabled,
-        ["is_deleted"] = t.is_deleted,
-        ["is_show_in_store"] = t.is_show_in_store,
-        ["is_free"] = t.is_free,
-        ["is_hard"] = t.is_hard,
-        ["order"] = t.order,
-        ["pre_order"] = t.pre_order,
-        ["regions"] = t.regions,
-        ["limits"] = t.limits,
-        ["periods"] = t.periods,
-        ["custom_attributes"] = t.custom_attributes,
-  })
+        ["virtual_items_currency_sku"] = t.virtual_items_currency_sku,
+        ["virtual_items_currency_admin_name_two_letter_locale"] = t.virtual_items_currency_admin_name_two_letter_locale,
+        ["virtual_items_currency_admin_description_two_letter_locale"] = t.virtual_items_currency_admin_description_two_letter_locale,
+        ["virtual_items_currency_admin_long_description_two_letter_locale"] = t.virtual_items_currency_admin_long_description_two_letter_locale,
+        ["virtual_items_currency_admin_image_url"] = t.virtual_items_currency_admin_image_url,
+        ["virtual_items_currency_admin_media_list"] = t.virtual_items_currency_admin_media_list,
+        ["virtual_items_currency_admin_groups_response"] = t.virtual_items_currency_admin_groups_response,
+        ["virtual_items_currency_admin_post_put_attributes"] = t.virtual_items_currency_admin_post_put_attributes,
+        ["virtual_items_currency_admin_prices"] = t.virtual_items_currency_admin_prices,
+        ["virtual_items_currency_admin_create_vc_prices"] = t.virtual_items_currency_admin_create_vc_prices,
+        ["virtual_items_currency_is_enabled"] = t.virtual_items_currency_is_enabled,
+        ["virtual_items_currency_is_deleted"] = t.virtual_items_currency_is_deleted,
+        ["virtual_items_currency_is_show_in_store"] = t.virtual_items_currency_is_show_in_store,
+        ["value_is_free"] = t.value_is_free,
+        ["virtual_items_currency_is_hard"] = t.virtual_items_currency_is_hard,
+        ["virtual_items_currency_order"] = t.virtual_items_currency_order,
+        ["virtual_items_currency_admin_pre_order"] = t.virtual_items_currency_admin_pre_order,
+        ["virtual_items_currency_admin_regions"] = t.virtual_items_currency_admin_regions,
+        ["item_limit"] = t.item_limit,
+        ["item_periods"] = t.item_periods,
+        ["item_custom_attributes"] = t.item_custom_attributes,
+    })
 end
 
 
+--- Create virtual_items_currency_admin_create_virtual_currency_package data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * virtual_items_currency_sku - [string] Unique item ID. The SKU may only contain lowercase Latin alphanumeric characters, periods, dashes, and underscores.
+--   * virtual_items_currency_admin_name_two_letter_locale - [object] Object with localizations for item's name. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * virtual_items_currency_admin_description_two_letter_locale - [object] Object with localizations for item's description. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * virtual_items_currency_admin_long_description_two_letter_locale - [object] Object with localizations for long description of item. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * virtual_items_currency_admin_image_url - [string] 
+--   * virtual_items_currency_admin_media_list - [array] Item's additional assets such as screenshots, gameplay video and so on.
+--   * virtual_items_currency_admin_groups_create - [array] Groups the item belongs to.
+-- Note. The string value refers to group `external_id`.
+--   * virtual_items_currency_admin_post_put_attributes - [array] List of attributes.
+-- Attention. You can't specify more than 20 attributes for the item. Any attempts to exceed the limit result in an error.
+--   * virtual_items_currency_admin_prices - [array] 
+--   * virtual_items_currency_admin_create_vc_prices - [array] 
+--   * virtual_items_currency_is_enabled - [boolean] 
+--   * virtual_items_currency_is_deleted - [boolean] 
+--   * virtual_items_currency_is_show_in_store - [boolean] 
+--   * value_is_free - [boolean] If `true`, the item is free.
+--   * virtual_items_currency_order - [integer] Defines arrangement order.
+--   * content - [array] Virtual currency package should contain only 1 position of virtual currency.
+--   * virtual_items_currency_admin_pre_order - [object] 
+--   * virtual_items_currency_admin_regions - [array] 
+--   * item_limit - [object] Item limits.
+--   * item_periods - [array] Item sales period.
+--   * item_custom_attributes - [object] A JSON object containing item attributes and values. Attributes allow you to add more info to items like the player's required level to use the item. Attributes enrich your game's internal logic and are accessible through dedicated GET methods and webhooks.
+-- @example
+-- {
+--   sku = "com.xsolla.novigrad_crown_500",
+--   name = 
+--   {
+--     en-US = "500x Novigradian crown",
+--     ru-RU = "500x Новиградских крон",
+--   },
+--   is_enabled = true,
+--   is_free = false,
+--   groups = 
+--   {
+--     "witcher",
+--   },
+--   order = 1,
+--   long_description = 
+--   {
+--     en-US = "Long Test new",
+--     ru-RU = "Длинное описание",
+--   },
+--   description = 
+--   {
+--     en-US = "The Crown (also known as the Novigradian crown) is a monetary unit which is used in some Northern Kingdoms",
+--     ru-RU = "Крона (Также известна как Новиградская крона) - платежная единица, используемая в северных королевствах",
+--   },
+--   image_url = "https://vignette.wikia.nocookie.net/witcher/images/7/7c/Items_Orens.png/revision/latest?cb=20081113120917",
+--   media_list = 
+--   {
+--     {
+--       type = "image",
+--       url = "https://test.com/image0",
+--     },
+--     {
+--       type = "image",
+--       url = "https://test.com/image1",
+--     },
+--   },
+--   attributes = 
+--   {
+--     {
+--       external_id = "event",
+--       name = 
+--       {
+--         en-US = "Event",
+--       },
+--       values = 
+--       {
+--         {
+--           external_id = "10-anniversary",
+--           value = 
+--           {
+--             en-US = "10th anniversary",
+--           },
+--         },
+--         {
+--           external_id = "christmas",
+--           value = 
+--           {
+--             en-US = "Christmas",
+--           },
+--         },
+--       },
+--     },
+--   },
+--   prices = 
+--   {
+--     {
+--       currency = "USD",
+--       amount = 99.99,
+--       is_default = true,
+--     },
+--     {
+--       currency = "EUR",
+--       amount = 80.03,
+--       is_enabled = false,
+--     },
+--   },
+--   vc_prices = nil,
+--   content = 
+--   {
+--     {
+--       sku = "com.xsolla.novigrad_crown",
+--       quantity = 500,
+--     },
+--   },
+--   limits = 
+--   {
+--     per_user = nil,
+--     per_item = nil,
+--   },
+--   periods = 
+--   {
+--     {
+--       date_from = "2020-08-11T10:00:00+03:00",
+--       date_until = "2020-08-11T20:00:00+03:00",
+--     },
+--   },
+--   custom_attributes = 
+--   {
+--     purchased = 0,
+--     attr = "value",
+--   },
+-- }
+
 function M.body_virtual_items_currency_admin_create_virtual_currency_package(t)
+    assert(t)
     assert(t.sku)
     assert(t.name)
     assert(t.description)
     assert(t.content)
     return json.encode({
-        ["sku"] = t.sku,
-        ["name"] = t.name,
-        ["description"] = t.description,
-        ["long_description"] = t.long_description,
-        ["image_url"] = t.image_url,
-        ["media_list"] = t.media_list,
-        ["groups"] = t.groups,
-        ["attributes"] = t.attributes,
-        ["prices"] = t.prices,
-        ["vc_prices"] = t.vc_prices,
-        ["is_enabled"] = t.is_enabled,
-        ["is_deleted"] = t.is_deleted,
-        ["is_show_in_store"] = t.is_show_in_store,
-        ["is_free"] = t.is_free,
-        ["order"] = t.order,
+        ["virtual_items_currency_sku"] = t.virtual_items_currency_sku,
+        ["virtual_items_currency_admin_name_two_letter_locale"] = t.virtual_items_currency_admin_name_two_letter_locale,
+        ["virtual_items_currency_admin_description_two_letter_locale"] = t.virtual_items_currency_admin_description_two_letter_locale,
+        ["virtual_items_currency_admin_long_description_two_letter_locale"] = t.virtual_items_currency_admin_long_description_two_letter_locale,
+        ["virtual_items_currency_admin_image_url"] = t.virtual_items_currency_admin_image_url,
+        ["virtual_items_currency_admin_media_list"] = t.virtual_items_currency_admin_media_list,
+        ["virtual_items_currency_admin_groups_create"] = t.virtual_items_currency_admin_groups_create,
+        ["virtual_items_currency_admin_post_put_attributes"] = t.virtual_items_currency_admin_post_put_attributes,
+        ["virtual_items_currency_admin_prices"] = t.virtual_items_currency_admin_prices,
+        ["virtual_items_currency_admin_create_vc_prices"] = t.virtual_items_currency_admin_create_vc_prices,
+        ["virtual_items_currency_is_enabled"] = t.virtual_items_currency_is_enabled,
+        ["virtual_items_currency_is_deleted"] = t.virtual_items_currency_is_deleted,
+        ["virtual_items_currency_is_show_in_store"] = t.virtual_items_currency_is_show_in_store,
+        ["value_is_free"] = t.value_is_free,
+        ["virtual_items_currency_order"] = t.virtual_items_currency_order,
         ["content"] = t.content,
-        ["pre_order"] = t.pre_order,
-        ["regions"] = t.regions,
-        ["limits"] = t.limits,
-        ["periods"] = t.periods,
-        ["custom_attributes"] = t.custom_attributes,
-  })
+        ["virtual_items_currency_admin_pre_order"] = t.virtual_items_currency_admin_pre_order,
+        ["virtual_items_currency_admin_regions"] = t.virtual_items_currency_admin_regions,
+        ["item_limit"] = t.item_limit,
+        ["item_periods"] = t.item_periods,
+        ["item_custom_attributes"] = t.item_custom_attributes,
+    })
 end
 
 
+--- Create create_update_region data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * regions_countries - [array] List of countries to be added in a region.
+-- 
+-- Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2).
+-- Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/).
+-- 
+-- Example: `["JP", "CN", "VN"]`
+--   * regions_name - [object] Name of region. Should contain key/value pairs where key is a locale with the "^[a-z]{2}-[A-Z]{2}$" format, the value is string.
+-- @example
+
 function M.body_create_update_region(t)
+    assert(t)
     assert(t.countries)
     assert(t.name)
     return json.encode({
-        ["countries"] = t.countries,
-        ["name"] = t.name,
-  })
+        ["regions_countries"] = t.regions_countries,
+        ["regions_name"] = t.regions_name,
+    })
 end
 
+
+--- Create reset_user_limits data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * user_limit_user - [object] 
+-- @example
+-- {
+--   user = 
+--   {
+--     user_external_id = "d342dad2-9d59-11e9-a384-42010aa8003f",
+--   },
+-- }
 
 function M.body_reset_user_limits(t)
+    assert(t)
     assert(t.user)
     return json.encode({
-        ["user"] = t.user,
-  })
+        ["user_limit_user"] = t.user_limit_user,
+    })
 end
 
+
+--- Create reset_user_limits_flexible data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * user_limit_user_flexible - [object] 
+-- @example
+-- {
+--   user = 
+--   {
+--     user_external_id = "d342dad2-9d59-11e9-a384-42010aa8003f",
+--   },
+-- }
 
 function M.body_reset_user_limits_flexible(t)
+    assert(t)
     assert(t.user)
     return json.encode({
-        ["user"] = t.user,
-  })
+        ["user_limit_user_flexible"] = t.user_limit_user_flexible,
+    })
 end
 
+
+--- Create update_user_limits_flexible data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * user_limit_user - [object] 
+--   * user_limit_available_flexible - [integer] Remaining number of items or promotion uses available to the user within the limit applied.
+-- @example
+-- {
+--   user = 
+--   {
+--     user_external_id = "d342dad2-9d59-11e9-a384-42010aa8003f",
+--   },
+--   available = 0,
+-- }
 
 function M.body_update_user_limits_flexible(t)
+    assert(t)
     assert(t.user)
     assert(t.available)
     return json.encode({
-        ["user"] = t.user,
-        ["available"] = t.available,
-  })
+        ["user_limit_user"] = t.user_limit_user,
+        ["user_limit_available_flexible"] = t.user_limit_available_flexible,
+    })
 end
 
+
+--- Create update_user_limits_strict data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * user_limit_user - [object] 
+--   * user_limit_available - [integer] Remaining number of items or promotion uses available to the user within the limit applied.
+-- @example
+-- {
+--   user = 
+--   {
+--     user_external_id = "d342dad2-9d59-11e9-a384-42010aa8003f",
+--   },
+--   available = 1,
+-- }
 
 function M.body_update_user_limits_strict(t)
+    assert(t)
     assert(t.user)
     assert(t.available)
     return json.encode({
-        ["user"] = t.user,
-        ["available"] = t.available,
-  })
+        ["user_limit_user"] = t.user_limit_user,
+        ["user_limit_available"] = t.user_limit_available,
+    })
 end
 
+
+--- Create update_promo_code_user_limits_flexible data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * user_limit_user - [object] 
+--   * promo_code_user_limit_available_flexible - [integer] Remaining number of the promo code uses available to the user within the limit applied.
+-- @example
+-- {
+--   user = 
+--   {
+--     user_external_id = "d342dad2-9d59-11e9-a384-42010aa8003f",
+--   },
+--   available = 0,
+-- }
 
 function M.body_update_promo_code_user_limits_flexible(t)
+    assert(t)
     assert(t.user)
     assert(t.available)
     return json.encode({
-        ["user"] = t.user,
-        ["available"] = t.available,
-  })
+        ["user_limit_user"] = t.user_limit_user,
+        ["promo_code_user_limit_available_flexible"] = t.promo_code_user_limit_available_flexible,
+    })
 end
 
+
+--- Create update_promo_code_user_limits_strict data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * user_limit_user - [object] 
+--   * promo_code_user_limit_available - [integer] Remaining number of the promo code uses available to the user within the limit applied.
+-- @example
+-- {
+--   user = 
+--   {
+--     user_external_id = "d342dad2-9d59-11e9-a384-42010aa8003f",
+--   },
+--   available = 1,
+-- }
 
 function M.body_update_promo_code_user_limits_strict(t)
+    assert(t)
     assert(t.user)
     assert(t.available)
     return json.encode({
-        ["user"] = t.user,
-        ["available"] = t.available,
-  })
+        ["user_limit_user"] = t.user_limit_user,
+        ["promo_code_user_limit_available"] = t.promo_code_user_limit_available,
+    })
 end
 
+
+--- Create update_coupon_user_limits_flexible data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * user_limit_user - [object] 
+--   * coupon_user_limit_available_flexible - [integer] Remaining number of the coupon uses available to the user within the limit applied.
+-- @example
+-- {
+--   user = 
+--   {
+--     user_external_id = "d342dad2-9d59-11e9-a384-42010aa8003f",
+--   },
+--   available = 0,
+-- }
 
 function M.body_update_coupon_user_limits_flexible(t)
+    assert(t)
     assert(t.user)
     assert(t.available)
     return json.encode({
-        ["user"] = t.user,
-        ["available"] = t.available,
-  })
+        ["user_limit_user"] = t.user_limit_user,
+        ["coupon_user_limit_available_flexible"] = t.coupon_user_limit_available_flexible,
+    })
 end
 
+
+--- Create update_coupon_user_limits_strict data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * user_limit_user - [object] 
+--   * coupon_user_limit_available - [integer] Remaining number of the coupon uses available to the user within the limit applied.
+-- @example
+-- {
+--   user = 
+--   {
+--     user_external_id = "d342dad2-9d59-11e9-a384-42010aa8003f",
+--   },
+--   available = 1,
+-- }
 
 function M.body_update_coupon_user_limits_strict(t)
+    assert(t)
     assert(t.user)
     assert(t.available)
     return json.encode({
-        ["user"] = t.user,
-        ["available"] = t.available,
-  })
+        ["user_limit_user"] = t.user_limit_user,
+        ["coupon_user_limit_available"] = t.coupon_user_limit_available,
+    })
 end
 
 
+--- Create create_value_point data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * description_two_letter_locale - [object] Object with localizations for item's description. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * common_admin_image_url - [string] Image URL.
+--   * is_enabled - [boolean] 
+--   * long_description_two_letter_locale - [object] Object with localizations for long description of item. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * media_list - [array] Item's additional assets such as screenshots, gameplay video and so on.
+--   * name_two_letter_locale - [object] Object with localizations for item's name. Two-letter lowercase [language code](https://developers.xsolla.com/doc/pay-station/features/localization/).
+--   * order - [integer] Defines arrangement order.
+--   * sku - [string] Unique item ID. The SKU may only contain lowercase Latin alphanumeric characters, periods, dashes, and underscores.
+--   * is_clan - [boolean] Whether the value point is used in clan reward chains.
+-- @example
+
 function M.body_create_value_point(t)
+    assert(t)
     assert(t.sku)
     assert(t.name)
     return json.encode({
-        ["description"] = t.description,
-        ["image_url"] = t.image_url,
+        ["description_two_letter_locale"] = t.description_two_letter_locale,
+        ["common_admin_image_url"] = t.common_admin_image_url,
         ["is_enabled"] = t.is_enabled,
-        ["long_description"] = t.long_description,
+        ["long_description_two_letter_locale"] = t.long_description_two_letter_locale,
         ["media_list"] = t.media_list,
-        ["name"] = t.name,
+        ["name_two_letter_locale"] = t.name_two_letter_locale,
         ["order"] = t.order,
         ["sku"] = t.sku,
         ["is_clan"] = t.is_clan,
-  })
+    })
 end
 
+
+--- Create set_item_value_point_reward data structure
+-- @param t Table with properties. Acceptable table keys:
+-- @example
+-- {
+--   {
+--     sku = "com.xsolla.booster_1",
+--     amount = 100,
+--   },
+--   {
+--     sku = "com.xsolla.booster_mega",
+--     amount = 200,
+--   },
+-- }
 
 function M.body_set_item_value_point_reward(t)
+    assert(t)
     return json.encode({
-  })
+    })
 end
 
+
+--- Create set_item_value_point_reward_for_patch data structure
+-- @param t Table with properties. Acceptable table keys:
+-- @example
+-- {
+--   {
+--     sku = "booster_1",
+--     amount = 100,
+--   },
+--   {
+--     sku = "booster_mega",
+--     amount = 0,
+--   },
+-- }
 
 function M.body_set_item_value_point_reward_for_patch(t)
+    assert(t)
     return json.encode({
-  })
+    })
 end
 
+
+--- Create create_reward_chain data structure
+-- @param t Table with properties.
+-- @example
 
 function M.body_create_reward_chain(t)
-    return json.encode({
-  })
+    assert(t)
+    return json.encode(t)
 end
 
+
+--- Create update_reward_chain data structure
+-- @param t Table with properties.
+-- @example
 
 function M.body_update_reward_chain(t)
-    return json.encode({
-  })
+    assert(t)
+    return json.encode(t)
 end
 
 
+--- Create promotions_unique_catalog_offer_create data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * promotions_coupon_external_id - [string] Unique promotion ID. The `external_id` may only contain lowercase Latin alphanumeric characters, periods, dashes, and underscores.
+--   * promotions_coupon_date_start - [string] Date when your promotion will be started.
+--   * promotions_coupon_date_end - [string] Date when your promotion will be finished. Can be `null`.  If `date_end` is `null`, promotion will be unlimited by time.
+--   * promotions_coupon_name - [object] Name of promotion. Should contain key/value pairs
+-- where key is a locale with "^[a-z]{2}-[A-Z]{2}$" format, value is string.
+--   * promotions_unique_catalog_offer_items - [array] A list of items SKU that are available after using the unique catalog offer.
+--   * promotions_coupon_redeem_user_limit - [integer] Limits total numbers of coupons redeemed by single user.
+--   * promotions_redeem_code_limit - [integer] Number of redemptions per code.
+--   * promotions_coupon_redeem_total_limit - [integer] Limits total numbers of coupons.
+-- @example
+
 function M.body_promotions_unique_catalog_offer_create(t)
+    assert(t)
     assert(t.external_id)
     assert(t.name)
     return json.encode({
-        ["external_id"] = t.external_id,
-        ["date_start"] = t.date_start,
-        ["date_end"] = t.date_end,
-        ["name"] = t.name,
-        ["items"] = t.items,
-        ["redeem_user_limit"] = t.redeem_user_limit,
-        ["redeem_code_limit"] = t.redeem_code_limit,
-        ["redeem_total_limit"] = t.redeem_total_limit,
-  })
+        ["promotions_coupon_external_id"] = t.promotions_coupon_external_id,
+        ["promotions_coupon_date_start"] = t.promotions_coupon_date_start,
+        ["promotions_coupon_date_end"] = t.promotions_coupon_date_end,
+        ["promotions_coupon_name"] = t.promotions_coupon_name,
+        ["promotions_unique_catalog_offer_items"] = t.promotions_unique_catalog_offer_items,
+        ["promotions_coupon_redeem_user_limit"] = t.promotions_coupon_redeem_user_limit,
+        ["promotions_redeem_code_limit"] = t.promotions_redeem_code_limit,
+        ["promotions_coupon_redeem_total_limit"] = t.promotions_coupon_redeem_total_limit,
+    })
 end
 
+
+--- Create promotions_unique_catalog_offer_update data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * promotions_coupon_date_start - [string] Date when your promotion will be started.
+--   * promotions_coupon_date_end - [string] Date when your promotion will be finished. Can be `null`.  If `date_end` is `null`, promotion will be unlimited by time.
+--   * promotions_coupon_name - [object] Name of promotion. Should contain key/value pairs
+-- where key is a locale with "^[a-z]{2}-[A-Z]{2}$" format, value is string.
+--   * promotions_unique_catalog_offer_items - [array] A list of items SKU that are available after using the unique catalog offer.
+--   * promotions_coupon_redeem_total_limit - [integer] Limits total numbers of coupons.
+--   * promotions_coupon_redeem_user_limit - [integer] Limits total numbers of coupons redeemed by single user.
+--   * promotions_redeem_code_limit - [integer] Number of redemptions per code.
+-- @example
 
 function M.body_promotions_unique_catalog_offer_update(t)
+    assert(t)
     assert(t.name)
     return json.encode({
-        ["date_start"] = t.date_start,
-        ["date_end"] = t.date_end,
-        ["name"] = t.name,
-        ["items"] = t.items,
-        ["redeem_total_limit"] = t.redeem_total_limit,
-        ["redeem_user_limit"] = t.redeem_user_limit,
-        ["redeem_code_limit"] = t.redeem_code_limit,
-  })
+        ["promotions_coupon_date_start"] = t.promotions_coupon_date_start,
+        ["promotions_coupon_date_end"] = t.promotions_coupon_date_end,
+        ["promotions_coupon_name"] = t.promotions_coupon_name,
+        ["promotions_unique_catalog_offer_items"] = t.promotions_unique_catalog_offer_items,
+        ["promotions_coupon_redeem_total_limit"] = t.promotions_coupon_redeem_total_limit,
+        ["promotions_coupon_redeem_user_limit"] = t.promotions_coupon_redeem_user_limit,
+        ["promotions_redeem_code_limit"] = t.promotions_redeem_code_limit,
+    })
 end
 
 
+--- Create connector_import_items_body data structure
+-- @param t Table with properties. Acceptable table keys:
+--   * connector_external_id - [string] A fixed value that specifies the type of operation for importing items.
+--   * file_url - [string] The URL of a file with data in JSON format. The file should be hosted on a storage service with public access. You can download the file template in Publisher Account in the [Store > Virtual Items > Catalog Management > Import Items (JSON)](https://publisher.xsolla.com/0/projects/0/storefront/import-export/import-items) section.
+--   * mode - [string] Import actions:
+-- @example
+
 function M.body_connector_import_items_body(t)
+    assert(t)
     assert(t.connector_external_id)
     assert(t.file_url)
     return json.encode({
         ["connector_external_id"] = t.connector_external_id,
         ["file_url"] = t.file_url,
         ["mode"] = t.mode,
-  })
+    })
 end
 
 
@@ -740,10 +1908,10 @@ function M.admin_get_attribute_list(project_id, limit, offset, callback, retry_p
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create attribute
@@ -751,7 +1919,7 @@ end
 -- /v2/project/{project_id}/admin/attribute
 -- @name admin_create_attribute
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_create_update_attribute()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -766,10 +1934,10 @@ function M.admin_create_attribute(project_id, body, callback, retry_policy, canc
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update attribute
@@ -778,7 +1946,7 @@ end
 -- @name admin_update_attribute
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Attribute external ID.
--- @param body
+-- @param body Create using body_create_update_attribute()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -795,10 +1963,10 @@ function M.admin_update_attribute(project_id, external_id, body, callback, retry
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get specified attribute
@@ -822,10 +1990,10 @@ function M.admin_get_attribute(project_id, external_id, callback, retry_policy, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete attribute
@@ -849,10 +2017,10 @@ function M.delete_attribute(project_id, external_id, callback, retry_policy, can
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create attribute value
@@ -865,7 +2033,7 @@ end
 -- @name admin_create_attribute_value
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Attribute external ID.
--- @param body
+-- @param body Create using body_create_update_attribute_value()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -882,10 +2050,10 @@ function M.admin_create_attribute_value(project_id, external_id, body, callback,
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete all values of attribute
@@ -909,10 +2077,10 @@ function M.admin_delete_all_attribute_value(project_id, external_id, callback, r
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update attribute value
@@ -922,7 +2090,7 @@ end
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param value_external_id (REQUIRED) Attribute value external ID.
 -- @param external_id (REQUIRED) Attribute external ID.
--- @param body
+-- @param body Create using body_create_update_attribute_value()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -941,10 +2109,10 @@ function M.admin_update_attribute_value(project_id, value_external_id, external_
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete attribute value
@@ -971,10 +2139,10 @@ function M.admin_delete_attribute_value(project_id, value_external_id, external_
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of catalog filter rules
@@ -1001,10 +2169,10 @@ function M.get_filter_rules(project_id, limit, offset, is_enabled, callback, ret
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create catalog filter rule
@@ -1012,7 +2180,7 @@ end
 -- /v2/project/{project_id}/admin/user/attribute/rule
 -- @name create_filter_rule
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_personalized_catalog_create_update_body()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1027,10 +2195,10 @@ function M.create_filter_rule(project_id, body, callback, retry_policy, cancella
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get all catalog rules for searching on client-side
@@ -1054,10 +2222,10 @@ function M.get_all_filter_rules(project_id, callback, retry_policy, cancellation
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get catalog filter rule
@@ -1081,10 +2249,10 @@ function M.get_filter_rule_by_id(project_id, rule_id, callback, retry_policy, ca
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update catalog filter rule
@@ -1093,7 +2261,7 @@ end
 -- @name update_filter_rule_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param rule_id (REQUIRED) Rule ID.
--- @param body
+-- @param body Create using body_personalized_catalog_create_update_body()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1110,10 +2278,10 @@ function M.update_filter_rule_by_id(project_id, rule_id, body, callback, retry_p
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Patch catalog filter rule
@@ -1122,7 +2290,7 @@ end
 -- @name patch_filter_rule_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param rule_id (REQUIRED) Rule ID.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1139,10 +2307,10 @@ function M.patch_filter_rule_by_id(project_id, rule_id, body, callback, retry_po
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete catalog filter rule
@@ -1166,10 +2334,10 @@ function M.delete_filter_rule_by_id(project_id, rule_id, callback, retry_policy,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of bundles for administration
@@ -1200,10 +2368,10 @@ function M.admin_get_bundle_list(project_id, limit, offset, promo_code, callback
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create bundle
@@ -1211,7 +2379,7 @@ end
 -- /v2/project/{project_id}/admin/items/bundle
 -- @name admin_create_bundle
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_bundles_bundle()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1226,10 +2394,10 @@ function M.admin_create_bundle(project_id, body, callback, retry_policy, cancell
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of bundles by specified group id
@@ -1263,10 +2431,10 @@ function M.admin_get_bundle_list_in_group_by_id(project_id, group_id, limit, off
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of bundles by specified group external id
@@ -1300,10 +2468,10 @@ function M.admin_get_bundle_list_in_group_by_external_id(project_id, external_id
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update bundle
@@ -1312,7 +2480,7 @@ end
 -- @name admin_update_bundle
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param sku (REQUIRED) Bundle SKU.
--- @param body
+-- @param body Create using body_bundles_bundle()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1329,10 +2497,10 @@ function M.admin_update_bundle(project_id, sku, body, callback, retry_policy, ca
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete bundle
@@ -1356,10 +2524,10 @@ function M.admin_delete_bundle(project_id, sku, callback, retry_policy, cancella
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get bundle
@@ -1389,10 +2557,10 @@ function M.admin_get_bundle(project_id, sku, promo_code, callback, retry_policy,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Show bundle in catalog
@@ -1416,10 +2584,10 @@ function M.admin_show_bundle(project_id, sku, callback, retry_policy, cancellati
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Hide bundle in catalog
@@ -1443,10 +2611,10 @@ function M.admin_hide_bundle(project_id, sku, callback, retry_policy, cancellati
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of bundles
@@ -1489,10 +2657,10 @@ function M.get_bundle_list(project_id, limit, offset, locale, additional_fields,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get specified bundle
@@ -1524,10 +2692,10 @@ function M.get_bundle(project_id, sku, promo_code, show_inactive_time_limited_it
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of bundles by specified group
@@ -1573,10 +2741,10 @@ function M.get_bundle_list_in_group(project_id, external_id, limit, offset, loca
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get cart by cart ID
@@ -1604,14 +2772,14 @@ function M.get_cart_by_id(project_id, cart_id, currency, locale, callback, retry
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get current user&#x27;s cart
--- Returns the current user&amp;#x27;s cart.
+-- Returns the current user&#x27;s cart.
 -- /v2/project/{project_id}/cart
 -- @name get_user_cart
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
@@ -1632,10 +2800,10 @@ function M.get_user_cart(project_id, currency, locale, callback, retry_policy, c
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete all cart items by cart ID
@@ -1659,10 +2827,10 @@ function M.cart_clear_by_id(project_id, cart_id, callback, retry_policy, cancell
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete all cart items from current cart
@@ -1683,10 +2851,10 @@ function M.cart_clear(project_id, callback, retry_policy, cancellation_token)
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Fill cart with items
@@ -1694,7 +2862,7 @@ end
 -- /v2/project/{project_id}/cart/fill
 -- @name cart_fill
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_cart_payment_fill_cart_json_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1709,10 +2877,10 @@ function M.cart_fill(project_id, body, callback, retry_policy, cancellation_toke
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Fill specific cart with items
@@ -1721,7 +2889,7 @@ end
 -- @name cart_fill_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
--- @param body
+-- @param body Create using body_cart_payment_fill_cart_json_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1738,10 +2906,10 @@ function M.cart_fill_by_id(project_id, cart_id, body, callback, retry_policy, ca
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update cart item by cart ID
@@ -1751,7 +2919,7 @@ end
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_cart_payment_put_item_by_cart_idjsonmodel()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1770,10 +2938,10 @@ function M.put_item_by_cart_id(project_id, cart_id, item_sku, body, callback, re
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete cart item by cart ID
@@ -1800,10 +2968,10 @@ function M.delete_item_by_cart_id(project_id, cart_id, item_sku, callback, retry
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update cart item from current cart
@@ -1812,7 +2980,7 @@ end
 -- @name put_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_cart_payment_put_item_by_cart_idjsonmodel()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1829,10 +2997,10 @@ function M.put_item(project_id, item_sku, body, callback, retry_policy, cancella
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete cart item from current cart
@@ -1856,10 +3024,10 @@ function M.delete_item(project_id, item_sku, callback, retry_policy, cancellatio
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create order with all items from particular cart
@@ -1878,7 +3046,7 @@ end
 -- @name create_order_by_cart_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
--- @param body
+-- @param body Create using body_cart_payment_create_order_by_cart_idjsonmodel()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1895,10 +3063,10 @@ function M.create_order_by_cart_id(project_id, cart_id, body, callback, retry_po
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create order with all items from current cart
@@ -1916,7 +3084,7 @@ end
 -- /v2/project/{project_id}/payment/cart
 -- @name create_order
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_cart_payment_create_order_by_cart_idjsonmodel()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1931,10 +3099,10 @@ function M.create_order(project_id, body, callback, retry_policy, cancellation_t
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create order with specified item
@@ -1953,7 +3121,7 @@ end
 -- @name create_order_with_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_cart_payment_create_order_with_specified_item_idjsonmodel()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1970,10 +3138,10 @@ function M.create_order_with_item(project_id, item_sku, body, callback, retry_po
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create order with free cart
@@ -1981,7 +3149,7 @@ end
 -- /v2/project/{project_id}/free/cart
 -- @name create_free_order
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_cart_payment_create_order_by_cart_idjsonmodel()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -1996,10 +3164,10 @@ function M.create_free_order(project_id, body, callback, retry_policy, cancellat
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create order with particular free cart
@@ -2008,7 +3176,7 @@ end
 -- @name create_free_order_by_cart_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
--- @param body
+-- @param body Create using body_cart_payment_create_order_by_cart_idjsonmodel()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2025,10 +3193,10 @@ function M.create_free_order_by_cart_id(project_id, cart_id, body, callback, ret
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create order with specified free item
@@ -2037,7 +3205,7 @@ end
 -- @name create_free_order_with_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_cart_payment_create_order_with_specified_item_idjsonmodel()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2054,10 +3222,10 @@ function M.create_free_order_with_item(project_id, item_sku, body, callback, ret
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get order
@@ -2081,10 +3249,10 @@ function M.get_order(project_id, order_id, callback, retry_policy, cancellation_
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get orders list for specified period
@@ -2092,7 +3260,7 @@ end
 -- /v3/project/{project_id}/admin/order/search
 -- @name admin_order_search
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_admin_order_search()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2107,10 +3275,10 @@ function M.admin_order_search(project_id, body, callback, retry_policy, cancella
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create payment token for purchase
@@ -2124,15 +3292,15 @@ end
 --    
 -- 
 -- 
---    user.country.value parameter is used to select a currency for the order. If user&amp;#x27;s country is unknown,
--- providing the user&amp;#x27;s IP in X-User-Ip header is an alternative option. 
+--    user.country.value parameter is used to select a currency for the order. If user&#x27;s country is unknown,
+-- providing the user&#x27;s IP in X-User-Ip header is an alternative option. 
 --  One of these two options is required for the correct work of this method. 
 --  The selected currency is used for payment methods at Pay Station.
 --    
 -- /v3/project/{project_id}/admin/payment/token
 -- @name admin_create_payment_token
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_cart_payment_admin_create_payment_token()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2147,10 +3315,10 @@ function M.admin_create_payment_token(project_id, body, callback, retry_policy, 
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Fill cart with items
@@ -2162,7 +3330,7 @@ end
 -- @param x_user_for User identifier can be transferred by using the Xsolla Login User JWT or the [Pay Station access token](https://developers.xsolla.com/pay-station-api/current/token/create-token).
 -- @param x_user_id You can use your own user ID when selling a cart with games.
 
--- @param body
+-- @param body Create using body_cart_payment_admin_fill_cart_json_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2178,10 +3346,10 @@ function M.admin_cart_fill(project_id, locale, x_user_for, x_user_id, body, call
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Fill cart by cart ID with items
@@ -2194,7 +3362,7 @@ end
 -- @param x_user_for User identifier can be transferred by using the Xsolla Login User JWT or the [Pay Station access token](https://developers.xsolla.com/pay-station-api/current/token/create-token).
 -- @param x_user_id You can use your own user ID when selling a cart with games.
 
--- @param body
+-- @param body Create using body_cart_payment_admin_fill_cart_json_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2212,10 +3380,10 @@ function M.admin_fill_cart_by_id(project_id, cart_id, locale, x_user_for, x_user
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get information about webhook settings
@@ -2237,10 +3405,10 @@ function M.get_webhook(project_id, callback, retry_policy, cancellation_token)
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update information about webhook settings
@@ -2249,7 +3417,7 @@ end
 -- /v2/project/{project_id}/admin/webhook
 -- @name update_webhook
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2264,10 +3432,10 @@ function M.update_webhook(project_id, body, callback, retry_policy, cancellation
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get information about item pre-order limit
@@ -2275,7 +3443,7 @@ end
 -- 
 -- Pre-Order limit API allows you to sell an item in a limited quantity. For configuring the pre-order itself, go to the Admin section of the desired item module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- 
 -- Aliases for this endpoint:
@@ -2299,10 +3467,10 @@ function M.get_pre_order_limit(project_id, item_sku, callback, retry_policy, can
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Add quantity to item pre-order limit
@@ -2310,7 +3478,7 @@ end
 -- 
 -- Pre-Order limit API allows you to sell an item in a limited quantity. For configuring the pre-order itself, go to the Admin section of the desired item module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- 
 -- Aliases for this endpoint:
@@ -2319,7 +3487,7 @@ end
 -- @name add_pre_order_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2336,10 +3504,10 @@ function M.add_pre_order_limit(project_id, item_sku, body, callback, retry_polic
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Set quantity of item pre-order limit
@@ -2347,7 +3515,7 @@ end
 -- 
 -- Pre-Order limit API allows you to sell an item in a limited quantity. For configuring the pre-order itself, go to the Admin section of the desired item module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- 
 -- Aliases for this endpoint:
@@ -2356,7 +3524,7 @@ end
 -- @name set_pre_order_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2373,10 +3541,10 @@ function M.set_pre_order_limit(project_id, item_sku, body, callback, retry_polic
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Remove quantity of item pre-order limit
@@ -2384,7 +3552,7 @@ end
 -- 
 -- Pre-Order limit API allows you to sell an item in a limited quantity. For configuring the pre-order itself, go to the Admin section of the desired item module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- 
 -- Aliases for this endpoint:
@@ -2393,7 +3561,7 @@ end
 -- @name remove_pre_order_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2410,10 +3578,10 @@ function M.remove_pre_order_limit(project_id, item_sku, body, callback, retry_po
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Toggle item&#x27;s pre-order limit
@@ -2421,7 +3589,7 @@ end
 -- 
 -- Pre-Order limit API allows you to sell an item in a limited quantity. For configuring the pre-order itself, go to the admin section of the desired item module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- 
 -- Aliases for this endpoint:
@@ -2430,7 +3598,7 @@ end
 -- @name toggle_pre_order_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2447,10 +3615,10 @@ function M.toggle_pre_order_limit(project_id, item_sku, body, callback, retry_po
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Remove all quantity of item pre-order limit
@@ -2458,7 +3626,7 @@ end
 -- 
 -- Pre-Order limit API allows you to sell an item in a limited quantity. For configuring the pre-order itself, go to the admin section of the desired item module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- 
 -- Aliases for this endpoint:
@@ -2482,14 +3650,14 @@ function M.remove_all_pre_order_limit(project_id, item_sku, callback, retry_poli
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get information about upsell in project
--- Retrieves the information about upsell in project: whether it&amp;#x27;s enabled, type of upsell, and the SKU list of items that are a part of this upsell.
+-- Retrieves the information about upsell in project: whether it&#x27;s enabled, type of upsell, and the SKU list of items that are a part of this upsell.
 -- /v2/project/{project_id}/admin/items/upsell
 -- @name get_upsell_configurations_for_project_admin
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
@@ -2506,10 +3674,10 @@ function M.get_upsell_configurations_for_project_admin(project_id, callback, ret
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create upsell
@@ -2517,7 +3685,7 @@ end
 -- /v2/project/{project_id}/admin/items/upsell
 -- @name post_upsell
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_create_upsell()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2532,10 +3700,10 @@ function M.post_upsell(project_id, body, callback, retry_policy, cancellation_to
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update upsell
@@ -2543,7 +3711,7 @@ end
 -- /v2/project/{project_id}/admin/items/upsell
 -- @name put_upsell
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_update_upsell()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2558,10 +3726,10 @@ function M.put_upsell(project_id, body, callback, retry_policy, cancellation_tok
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Activate/Deactivate project&#x27;s upsell
@@ -2585,10 +3753,10 @@ function M.put_upsell_toggle_active_inactive(project_id, toggle, callback, retry
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of upsell items in project
@@ -2609,14 +3777,14 @@ function M.get_upsell_for_project_client(project_id, callback, retry_policy, can
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get projects
--- Gets the list of merchant&amp;#x27;s projects.
+-- Gets the list of merchant&#x27;s projects.
 -- 
 -- 
 --   NoticeThis API call does not contain the project_id path parameter, so you need to use the API key that is valid in all the company’s projects to set up authorization.
@@ -2641,10 +3809,10 @@ function M.get_projects(limit, offset, merchant_id, callback, retry_policy, canc
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get games list
@@ -2687,10 +3855,10 @@ function M.get_games_list(project_id, limit, offset, locale, additional_fields, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get games list by specified group
@@ -2736,10 +3904,10 @@ function M.get_games_group(project_id, external_id, limit, offset, locale, addit
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get game for catalog
@@ -2777,10 +3945,10 @@ function M.get_game_by_sku(project_id, item_sku, locale, additional_fields, coun
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get game key for catalog
@@ -2818,10 +3986,10 @@ function M.get_game_key_by_sku(project_id, item_sku, locale, additional_fields, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get game keys list by specified group
@@ -2867,10 +4035,10 @@ function M.get_game_keys_group(project_id, external_id, limit, offset, locale, a
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get DRM list
@@ -2891,10 +4059,10 @@ function M.get_drm_list(project_id, callback, retry_policy, cancellation_token)
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create game
@@ -2902,7 +4070,7 @@ end
 -- /v2/project/{project_id}/admin/items/game
 -- @name admin_create_game
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_game_keys_create_update_game_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -2917,10 +4085,10 @@ function M.admin_create_game(project_id, body, callback, retry_policy, cancellat
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of games for administration
@@ -2952,10 +4120,10 @@ function M.admin_get_game_list(project_id, limit, offset, promo_code, callback, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get game for administration
@@ -2986,10 +4154,10 @@ function M.admin_get_game_by_sku(project_id, item_sku, promo_code, callback, ret
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update game by SKU
@@ -2998,7 +4166,7 @@ end
 -- @name admin_update_game_by_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_game_keys_create_update_game_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3015,10 +4183,10 @@ function M.admin_update_game_by_sku(project_id, item_sku, body, callback, retry_
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete game by SKU
@@ -3042,10 +4210,10 @@ function M.admin_delete_game_by_sku(project_id, item_sku, callback, retry_policy
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get game for administration by ID
@@ -3076,10 +4244,10 @@ function M.admin_get_game_by_id(project_id, item_id, promo_code, callback, retry
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update game by ID
@@ -3088,7 +4256,7 @@ end
 -- @name admin_update_game_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_id (REQUIRED) Item ID.
--- @param body
+-- @param body Create using body_game_keys_create_update_game_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3105,10 +4273,10 @@ function M.admin_update_game_by_id(project_id, item_id, body, callback, retry_po
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete game by ID
@@ -3132,10 +4300,10 @@ function M.admin_delete_game_by_id(project_id, item_id, callback, retry_policy, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Upload codes
@@ -3144,7 +4312,7 @@ end
 -- @name admin_upload_codes_by_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3161,10 +4329,10 @@ function M.admin_upload_codes_by_sku(project_id, item_sku, body, callback, retry
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Upload codes by ID
@@ -3173,7 +4341,7 @@ end
 -- @name admin_upload_codes_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_id (REQUIRED) Item ID.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3190,10 +4358,10 @@ function M.admin_upload_codes_by_id(project_id, item_id, body, callback, retry_p
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get codes loading session information
@@ -3217,10 +4385,10 @@ function M.admin_get_codes_session(project_id, session_id, callback, retry_polic
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get codes
@@ -3255,10 +4423,10 @@ function M.admin_get_codes_by_sku(project_id, item_sku, user_email, quantity, re
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get codes by ID
@@ -3293,10 +4461,10 @@ function M.admin_get_codes_by_id(project_id, item_id, user_email, quantity, reas
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete codes
@@ -3328,10 +4496,10 @@ function M.admin_delete_codes_by_sku(project_id, item_sku, user_email, reason, r
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete codes by ID
@@ -3363,10 +4531,10 @@ function M.admin_delete_codes_by_id(project_id, item_id, user_email, reason, reg
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of games owned by user
@@ -3399,10 +4567,10 @@ function M.get_user_games(project_id, limit, offset, sandbox, additional_fields,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Redeem game code by client
@@ -3414,7 +4582,7 @@ end
 -- /v2/project/{project_id}/entitlement/redeem
 -- @name redeem_game_pin_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3429,10 +4597,10 @@ function M.redeem_game_pin_code(project_id, body, callback, retry_policy, cancel
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Grant entitlement (admin)
@@ -3444,7 +4612,7 @@ end
 -- /v2/project/{project_id}/admin/entitlement/grant
 -- @name grant_entitlement_admin
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3459,10 +4627,10 @@ function M.grant_entitlement_admin(project_id, body, callback, retry_policy, can
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Revoke entitlement (admin)
@@ -3474,7 +4642,7 @@ end
 -- /v2/project/{project_id}/admin/entitlement/revoke
 -- @name revoke_entitlement_admin
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3489,10 +4657,10 @@ function M.revoke_entitlement_admin(project_id, body, callback, retry_policy, ca
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get physical items list
@@ -3531,10 +4699,10 @@ function M.get_physical_goods_list(project_id, limit, offset, locale, additional
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create physical item
@@ -3542,7 +4710,7 @@ end
 -- /v2/project/{project_id}/admin/items/physical_good
 -- @name admin_create_physical_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_physical_items_create_update_physical_good_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3557,10 +4725,10 @@ function M.admin_create_physical_item(project_id, body, callback, retry_policy, 
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of physical goods for administration
@@ -3589,10 +4757,10 @@ function M.admin_get_physical_item_list(project_id, limit, offset, callback, ret
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get physical item
@@ -3619,10 +4787,10 @@ function M.admin_get_physical_item_by_sku(project_id, item_sku, callback, retry_
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update physical item
@@ -3634,7 +4802,7 @@ end
 -- @name admin_update_physical_item_by_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_physical_items_patch_physical_good_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3651,10 +4819,10 @@ function M.admin_update_physical_item_by_sku(project_id, item_sku, body, callbac
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Partially update physical item
@@ -3666,7 +4834,7 @@ end
 -- @name admin_patch_physical_item_by_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_physical_items_patch_physical_good_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3683,10 +4851,10 @@ function M.admin_patch_physical_item_by_sku(project_id, item_sku, body, callback
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete physical item
@@ -3713,10 +4881,10 @@ function M.delete_physical_item(project_id, item_sku, callback, retry_policy, ca
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get physical item by ID
@@ -3740,10 +4908,10 @@ function M.admin_get_physical_item_by_id(project_id, item_id, callback, retry_po
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update physical item by ID
@@ -3752,7 +4920,7 @@ end
 -- @name admin_update_physical_item_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_id (REQUIRED) Item ID.
--- @param body
+-- @param body Create using body_physical_items_create_update_physical_good_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3769,10 +4937,10 @@ function M.admin_update_physical_item_by_id(project_id, item_id, body, callback,
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Partially update physical item by ID
@@ -3781,7 +4949,7 @@ end
 -- @name admin_patch_physical_item_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_id (REQUIRED) Item ID.
--- @param body
+-- @param body Create using body_physical_items_patch_physical_good_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3798,10 +4966,10 @@ function M.admin_patch_physical_item_by_id(project_id, item_id, body, callback, 
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete physical item by ID
@@ -3825,19 +4993,19 @@ function M.delete_physical_item_by_id(project_id, item_id, callback, retry_polic
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get all delivery methods
--- This API allows to specify method of item&amp;#x27;s delivery and delivery prices in
+-- This API allows to specify method of item&#x27;s delivery and delivery prices in
 -- different currencies. User chooses one of the provided methods after they 
 -- provide shipping address information.
 -- 
 -- 
---   NoteTo make the delivery method available to the user, all items in user&amp;#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
+--   NoteTo make the delivery method available to the user, all items in user&#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
 -- 
 -- 
 -- To use the methods, you should specify fulfilment XSOLLA_SIMPLE in project
@@ -3858,19 +5026,19 @@ function M.admin_get_delivery_method(project_id, callback, retry_policy, cancell
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Add new delivery method
--- This API allows to specify method of item&amp;#x27;s delivery and delivery prices in
+-- This API allows to specify method of item&#x27;s delivery and delivery prices in
 -- different currencies. User chooses one of the provided methods after they 
 -- provide shipping address information.
 -- 
 -- 
---   NoteTo make the delivery method available to the user, all items in user&amp;#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
+--   NoteTo make the delivery method available to the user, all items in user&#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
 -- 
 -- 
 -- To use the methods, you should specify fulfilment XSOLLA_SIMPLE in project
@@ -3878,7 +5046,7 @@ end
 -- /v2/project/{project_id}/admin/items/physical_good/delivery/method
 -- @name admin_create_delivery_method
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3893,19 +5061,19 @@ function M.admin_create_delivery_method(project_id, body, callback, retry_policy
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get delivery method information by method code
--- This API allows to specify method of item&amp;#x27;s delivery and delivery prices in
+-- This API allows to specify method of item&#x27;s delivery and delivery prices in
 -- different currencies. User chooses one of the provided methods after they 
 -- provide shipping address information.
 -- 
 -- 
---   NoteTo make the delivery method available to the user, all items in user&amp;#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
+--   NoteTo make the delivery method available to the user, all items in user&#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
 -- 
 -- 
 -- To use the methods, you should specify fulfilment XSOLLA_SIMPLE in project
@@ -3933,19 +5101,19 @@ function M.admin_get_delivery_method_method_code(project_id, code, callback, ret
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update delivery method information by method code
--- This API allows to specify method of item&amp;#x27;s delivery and delivery prices in
+-- This API allows to specify method of item&#x27;s delivery and delivery prices in
 -- different currencies. User chooses one of the provided methods after they 
 -- provide shipping address information.
 -- 
 -- 
---   NoteTo make the delivery method available to the user, all items in user&amp;#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
+--   NoteTo make the delivery method available to the user, all items in user&#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
 -- 
 -- 
 -- To use the methods, you should specify fulfilment XSOLLA_SIMPLE in project
@@ -3958,7 +5126,7 @@ end
 -- @name admin_update_delivery_method_method_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param code (REQUIRED) Delivery method code.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -3975,19 +5143,19 @@ function M.admin_update_delivery_method_method_code(project_id, code, body, call
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Remove delivery method by method code
--- This API allows to specify method of item&amp;#x27;s delivery and delivery prices in
+-- This API allows to specify method of item&#x27;s delivery and delivery prices in
 -- different currencies. User chooses one of the provided methods after they 
 -- provide shipping address information.
 -- 
 -- 
---   NoteTo make the delivery method available to the user, all items in user&amp;#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
+--   NoteTo make the delivery method available to the user, all items in user&#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
 -- 
 -- 
 -- To use the methods, you should specify fulfilment XSOLLA_SIMPLE in project
@@ -4015,19 +5183,19 @@ function M.admin_delete_delivery_method_method_code(project_id, code, callback, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get item delivery prices information
--- This API allows to specify method of item&amp;#x27;s delivery and delivery prices in
+-- This API allows to specify method of item&#x27;s delivery and delivery prices in
 -- different currencies. User chooses one of the provided methods after they 
 -- provide shipping address information.
 -- 
 -- 
---   NoteTo make the delivery method available to the user, all items in user&amp;#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
+--   NoteTo make the delivery method available to the user, all items in user&#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
 -- 
 -- 
 -- To use the methods, you should specify fulfilment XSOLLA_SIMPLE in project
@@ -4057,19 +5225,19 @@ function M.admin_get_delivery_method_price_item_sku(project_id, item_sku, callba
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Add new delivery prices
--- This API allows to specify method of item&amp;#x27;s delivery and delivery prices in
+-- This API allows to specify method of item&#x27;s delivery and delivery prices in
 -- different currencies. User chooses one of the provided methods after they 
 -- provide shipping address information.
 -- 
 -- 
---   NoteTo make the delivery method available to the user, all items in user&amp;#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
+--   NoteTo make the delivery method available to the user, all items in user&#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
 -- 
 -- 
 -- To use the methods, you should specify fulfilment XSOLLA_SIMPLE in project
@@ -4084,7 +5252,7 @@ end
 -- @name admin_add_delivery_method_price_item_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4101,19 +5269,19 @@ function M.admin_add_delivery_method_price_item_sku(project_id, item_sku, body, 
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Remove delivery prices
--- This API allows to specify method of item&amp;#x27;s delivery and delivery prices in
+-- This API allows to specify method of item&#x27;s delivery and delivery prices in
 -- different currencies. User chooses one of the provided methods after they 
 -- provide shipping address information.
 -- 
 -- 
---   NoteTo make the delivery method available to the user, all items in user&amp;#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
+--   NoteTo make the delivery method available to the user, all items in user&#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
 -- 
 -- 
 -- To use the methods, you should specify fulfilment XSOLLA_SIMPLE in project
@@ -4128,7 +5296,7 @@ end
 -- @name admin_delete_delivery_method_price_item_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4145,19 +5313,19 @@ function M.admin_delete_delivery_method_price_item_sku(project_id, item_sku, bod
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Replace delivery prices
--- This API allows to specify method of item&amp;#x27;s delivery and delivery prices in
+-- This API allows to specify method of item&#x27;s delivery and delivery prices in
 -- different currencies. User chooses one of the provided methods after they 
 -- provide shipping address information.
 -- 
 -- 
---   NoteTo make the delivery method available to the user, all items in user&amp;#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
+--   NoteTo make the delivery method available to the user, all items in user&#x27;s order should have the delivery price for this method in the currency of the order. Final shipping price is calculated by summing prices of all items for this delivery method.
 -- 
 -- 
 -- To use the methods, you should specify fulfilment XSOLLA_SIMPLE in project
@@ -4172,7 +5340,7 @@ end
 -- @name admin_replace_delivery_method_price_item_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4189,10 +5357,10 @@ function M.admin_replace_delivery_method_price_item_sku(project_id, item_sku, bo
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get all promotion list
@@ -4219,10 +5387,10 @@ function M.get_promotion_list(project_id, limit, offset, enabled, callback, retr
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Activate promotion
@@ -4246,10 +5414,10 @@ function M.activate_promotion(project_id, promotion_id, callback, retry_policy, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Deactivate promotion
@@ -4273,10 +5441,10 @@ function M.deactivate_promotion(project_id, promotion_id, callback, retry_policy
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get redeemable promotion by code
@@ -4300,10 +5468,10 @@ function M.get_redeemable_promotion_by_code(project_id, code, callback, retry_po
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Redeem coupon code
@@ -4311,7 +5479,7 @@ end
 -- /v2/project/{project_id}/coupon/redeem
 -- @name redeem_coupon
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_promotions_redeem_coupon_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4326,10 +5494,10 @@ function M.redeem_coupon(project_id, body, callback, retry_policy, cancellation_
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get coupon rewards
@@ -4355,10 +5523,10 @@ function M.get_coupon_rewards_by_code(project_id, coupon_code, callback, retry_p
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create coupon promotion
@@ -4366,7 +5534,7 @@ end
 -- /v2/project/{project_id}/admin/coupon
 -- @name admin_create_coupon
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_promotions_coupon_create()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4381,10 +5549,10 @@ function M.admin_create_coupon(project_id, body, callback, retry_policy, cancell
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of coupon promotions
@@ -4409,10 +5577,10 @@ function M.get_coupons(project_id, limit, offset, callback, retry_policy, cancel
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update coupon promotion
@@ -4421,7 +5589,7 @@ end
 -- @name update_coupon_promotion
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_promotions_coupon_update()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4438,10 +5606,10 @@ function M.update_coupon_promotion(project_id, external_id, body, callback, retr
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get coupon promotion
@@ -4465,10 +5633,10 @@ function M.get_coupon(project_id, external_id, callback, retry_policy, cancellat
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete coupon promotion
@@ -4497,10 +5665,10 @@ function M.delete_coupon_promotion(project_id, external_id, callback, retry_poli
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Activate coupon promotion
@@ -4527,10 +5695,10 @@ function M.activate_coupon(project_id, external_id, callback, retry_policy, canc
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Deactivate coupon promotion
@@ -4557,10 +5725,10 @@ function M.deactivate_coupon(project_id, external_id, callback, retry_policy, ca
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create coupon code
@@ -4569,7 +5737,7 @@ end
 -- @name create_coupon_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_promotions_create_coupon_promocode_code()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4586,10 +5754,10 @@ function M.create_coupon_code(project_id, external_id, body, callback, retry_pol
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get coupon codes
@@ -4617,10 +5785,10 @@ function M.get_coupon_codes(project_id, external_id, limit, offset, callback, re
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Generate coupon codes
@@ -4629,7 +5797,7 @@ end
 -- @name generate_coupon_codes
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4646,10 +5814,10 @@ function M.generate_coupon_codes(project_id, external_id, body, callback, retry_
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Redeem promo code
@@ -4658,7 +5826,7 @@ end
 -- /v2/project/{project_id}/promocode/redeem
 -- @name redeem_promo_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_promotions_redeem_promo_code_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4673,10 +5841,10 @@ function M.redeem_promo_code(project_id, body, callback, retry_policy, cancellat
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Remove promo code from cart
@@ -4685,7 +5853,7 @@ end
 -- /v2/project/{project_id}/promocode/remove
 -- @name remove_cart_promo_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_promotions_cancel_promo_code_model()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4700,10 +5868,10 @@ function M.remove_cart_promo_code(project_id, body, callback, retry_policy, canc
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get promo code reward
@@ -4729,10 +5897,10 @@ function M.get_promo_code_rewards_by_code(project_id, promocode_code, callback, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create promo code promotion
@@ -4740,7 +5908,7 @@ end
 -- /v2/project/{project_id}/admin/promocode
 -- @name create_promo_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_promotions_promocode_create()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4755,10 +5923,10 @@ function M.create_promo_code(project_id, body, callback, retry_policy, cancellat
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of promo code promotions
@@ -4783,10 +5951,10 @@ function M.get_promo_codes(project_id, limit, offset, callback, retry_policy, ca
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update promo code promotion
@@ -4795,7 +5963,7 @@ end
 -- @name update_promo_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_promotions_promocode_update()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4812,10 +5980,10 @@ function M.update_promo_code(project_id, external_id, body, callback, retry_poli
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get promo code promotion
@@ -4839,10 +6007,10 @@ function M.get_promo_code(project_id, external_id, callback, retry_policy, cance
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete promo code promotion
@@ -4871,10 +6039,10 @@ function M.delete_promo_code(project_id, external_id, callback, retry_policy, ca
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Activate promo code promotion
@@ -4902,10 +6070,10 @@ function M.activate_promo_code(project_id, external_id, callback, retry_policy, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Deactivate promo code promotion
@@ -4933,10 +6101,10 @@ function M.deactivate_promo_code(project_id, external_id, callback, retry_policy
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create code for promo code promotion
@@ -4945,7 +6113,7 @@ end
 -- @name create_promo_code_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_promotions_create_coupon_promocode_code()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -4962,10 +6130,10 @@ function M.create_promo_code_code(project_id, external_id, body, callback, retry
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get codes of promo code promotion
@@ -4993,10 +6161,10 @@ function M.get_promocode_codes(project_id, external_id, limit, offset, callback,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Generate codes for promo code promotion
@@ -5005,7 +6173,7 @@ end
 -- @name generate_promo_code_codes
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5022,10 +6190,10 @@ function M.generate_promo_code_codes(project_id, external_id, body, callback, re
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create discount promotion for item
@@ -5036,7 +6204,7 @@ end
 -- /v2/project/{project_id}/admin/promotion/item
 -- @name create_item_promotion
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_promotions_create_update_item_promotion()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5051,10 +6219,10 @@ function M.create_item_promotion(project_id, body, callback, retry_policy, cance
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of item promotions
@@ -5082,10 +6250,10 @@ function M.get_item_promotion_list(project_id, limit, offset, callback, retry_po
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update item promotion
@@ -5101,7 +6269,7 @@ end
 -- @name update_item_promotion
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param promotion_id (REQUIRED) Promotion ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_promotions_create_update_item_promotion()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5118,10 +6286,10 @@ function M.update_item_promotion(project_id, promotion_id, body, callback, retry
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get item promotion
@@ -5148,10 +6316,10 @@ function M.get_item_promotion(project_id, promotion_id, callback, retry_policy, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete item promotion
@@ -5179,10 +6347,10 @@ function M.delete_item_promotion(project_id, promotion_id, callback, retry_polic
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create bonus promotion
@@ -5193,7 +6361,7 @@ end
 -- /v2/project/{project_id}/admin/promotion/bonus
 -- @name create_bonus_promotion
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_promotions_create_update_bonus_promotion()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5208,10 +6376,10 @@ function M.create_bonus_promotion(project_id, body, callback, retry_policy, canc
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of bonus promotions
@@ -5239,10 +6407,10 @@ function M.get_bonus_promotion_list(project_id, limit, offset, callback, retry_p
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update bonus promotion
@@ -5258,7 +6426,7 @@ end
 -- @name update_bonus_promotion
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param promotion_id (REQUIRED) Promotion ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_promotions_create_update_bonus_promotion()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5275,10 +6443,10 @@ function M.update_bonus_promotion(project_id, promotion_id, body, callback, retr
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get bonus promotion
@@ -5305,10 +6473,10 @@ function M.get_bonus_promotion(project_id, promotion_id, callback, retry_policy,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete bonus promotion
@@ -5336,10 +6504,10 @@ function M.delete_bonus_promotion(project_id, promotion_id, callback, retry_poli
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Verify promotion code
@@ -5363,10 +6531,10 @@ function M.verify_promotion_code(project_id, code, callback, retry_policy, cance
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of virtual items for administration
@@ -5397,10 +6565,10 @@ function M.admin_get_virtual_items_list(project_id, limit, offset, promo_code, c
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create virtual item
@@ -5408,7 +6576,7 @@ end
 -- /v2/project/{project_id}/admin/items/virtual_items
 -- @name admin_create_virtual_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_virtual_items_currency_admin_create_virtual_item()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5423,10 +6591,10 @@ function M.admin_create_virtual_item(project_id, body, callback, retry_policy, c
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of virtual items by specified group external id
@@ -5460,10 +6628,10 @@ function M.admin_get_virtual_items_list_by_group_external_id(project_id, externa
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of virtual items by specified group id
@@ -5497,10 +6665,10 @@ function M.admin_get_virtual_items_list_by_group_id(project_id, group_id, limit,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get virtual item
@@ -5530,10 +6698,10 @@ function M.admin_get_virtual_item(project_id, item_sku, promo_code, callback, re
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update virtual item
@@ -5542,7 +6710,7 @@ end
 -- @name admin_update_virtual_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_virtual_items_currency_admin_create_virtual_item()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5559,10 +6727,10 @@ function M.admin_update_virtual_item(project_id, item_sku, body, callback, retry
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete virtual item
@@ -5586,10 +6754,10 @@ function M.admin_delete_virtual_item(project_id, item_sku, callback, retry_polic
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of virtual currencies for administration
@@ -5620,10 +6788,10 @@ function M.admin_get_virtual_currencies_list(project_id, limit, offset, promo_co
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create virtual currency
@@ -5631,7 +6799,7 @@ end
 -- /v2/project/{project_id}/admin/items/virtual_currency
 -- @name admin_create_virtual_currency
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_virtual_items_currency_admin_create_virtual_currency()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5646,10 +6814,10 @@ function M.admin_create_virtual_currency(project_id, body, callback, retry_polic
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get virtual currency
@@ -5679,10 +6847,10 @@ function M.admin_get_virtual_currency(project_id, virtual_currency_sku, promo_co
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update virtual currency
@@ -5691,7 +6859,7 @@ end
 -- @name admin_update_virtual_currency
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param virtual_currency_sku (REQUIRED) Virtual currency SKU.
--- @param body
+-- @param body Create using body_virtual_items_currency_admin_create_virtual_currency()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5708,10 +6876,10 @@ function M.admin_update_virtual_currency(project_id, virtual_currency_sku, body,
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete virtual currency
@@ -5735,10 +6903,10 @@ function M.admin_delete_virtual_currency(project_id, virtual_currency_sku, callb
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of virtual currency packages for administration
@@ -5769,10 +6937,10 @@ function M.admin_get_virtual_currency_packages_list(project_id, limit, offset, p
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create virtual currency package
@@ -5780,7 +6948,7 @@ end
 -- /v2/project/{project_id}/admin/items/virtual_currency/package
 -- @name admin_create_virtual_currency_package
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_virtual_items_currency_admin_create_virtual_currency_package()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5795,10 +6963,10 @@ function M.admin_create_virtual_currency_package(project_id, body, callback, ret
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update virtual currency package
@@ -5808,7 +6976,7 @@ end
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
--- @param body
+-- @param body Create using body_virtual_items_currency_admin_create_virtual_currency_package()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -5826,10 +6994,10 @@ function M.admin_update_virtual_currency_package(project_id, item_sku, promo_cod
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete virtual currency package
@@ -5853,10 +7021,10 @@ function M.admin_delete_virtual_currency_package(project_id, item_sku, callback,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get virtual currency package
@@ -5884,10 +7052,10 @@ function M.admin_get_virtual_currency_package(project_id, item_sku, callback, re
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get virtual items list
@@ -5930,10 +7098,10 @@ function M.get_virtual_items(project_id, limit, offset, locale, additional_field
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get virtual item by SKU
@@ -5966,10 +7134,10 @@ function M.get_virtual_items_sku(project_id, item_sku, locale, country, show_ina
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get all virtual items list
@@ -6002,10 +7170,10 @@ function M.get_all_virtual_items(project_id, locale, promo_code, callback, retry
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get virtual currency list
@@ -6048,10 +7216,10 @@ function M.get_virtual_currency(project_id, limit, offset, locale, additional_fi
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get virtual currency by SKU
@@ -6084,10 +7252,10 @@ function M.get_virtual_currency_sku(project_id, virtual_currency_sku, locale, co
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get virtual currency package list
@@ -6130,10 +7298,10 @@ function M.get_virtual_currency_package(project_id, limit, offset, locale, addit
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get virtual currency package by SKU
@@ -6166,10 +7334,10 @@ function M.get_virtual_currency_package_sku(project_id, virtual_currency_package
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get items list by specified group
@@ -6214,10 +7382,10 @@ function M.get_virtual_items_group(project_id, external_id, limit, offset, local
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get items groups list
@@ -6240,10 +7408,10 @@ function M.get_item_groups(project_id, promo_code, callback, retry_policy, cance
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create order with specified item purchased by virtual currency
@@ -6254,7 +7422,7 @@ end
 -- @param item_sku (REQUIRED) Item SKU.
 -- @param virtual_currency_sku (REQUIRED) Virtual currency SKU.
 -- @param platform Publishing platform the user plays on: `xsolla` (default), `playstation_network`, `xbox_live`, `pc_standalone`, `nintendo_shop`, `google_play`, `app_store_ios`, `android_standalone`, `ios_standalone`, `android_other`, `ios_other`, `pc_other`.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6274,10 +7442,10 @@ function M.create_order_with_item_for_virtual_currency(project_id, item_sku, vir
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get sellable items list
@@ -6320,10 +7488,10 @@ function M.get_sellable_items(project_id, limit, offset, locale, additional_fiel
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get sellable item by ID
@@ -6354,10 +7522,10 @@ function M.get_sellable_item_by_id(project_id, item_id, promo_code, show_inactiv
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get sellable item by SKU
@@ -6388,10 +7556,10 @@ function M.get_sellable_item_by_sku(project_id, sku, promo_code, show_inactive_t
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get sellable items list by specified group
@@ -6437,10 +7605,10 @@ function M.get_sellable_items_group(project_id, external_id, limit, offset, loca
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of regions
@@ -6463,10 +7631,10 @@ function M.admin_get_regions(project_id, callback, retry_policy, cancellation_to
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create region
@@ -6476,7 +7644,7 @@ end
 -- /v2/project/{project_id}/admin/region
 -- @name admin_create_region
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_create_update_region()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6491,10 +7659,10 @@ function M.admin_create_region(project_id, body, callback, retry_policy, cancell
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get region
@@ -6520,10 +7688,10 @@ function M.admin_get_region(project_id, region_id, callback, retry_policy, cance
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update region
@@ -6534,7 +7702,7 @@ end
 -- @name admin_update_region
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param region_id (REQUIRED) Region ID. Unique region identifier within the project.
--- @param body
+-- @param body Create using body_create_update_region()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6551,10 +7719,10 @@ function M.admin_update_region(project_id, region_id, body, callback, retry_poli
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete region
@@ -6578,10 +7746,10 @@ function M.admin_delete_region(project_id, region_id, callback, retry_policy, ca
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Refresh all purchase limits for specified user
@@ -6589,12 +7757,12 @@ end
 -- 
 -- User limit API allows you to sell an item in a limited quantity. To configure the purchase limits, go to the Admin section of the desired item type module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- /v2/project/{project_id}/admin/user/limit/item/all
 -- @name reset_all_user_items_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_reset_user_limits()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6609,10 +7777,10 @@ function M.reset_all_user_items_limit(project_id, body, callback, retry_policy, 
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Refresh purchase limit
@@ -6620,13 +7788,13 @@ end
 -- 
 -- User limit API allows you to sell an item in a limited quantity. To configure the purchase limits, go to the Admin section of the desired item type module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- /v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}/all
 -- @name reset_user_item_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_reset_user_limits_flexible()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6643,10 +7811,10 @@ function M.reset_user_item_limit(project_id, item_sku, body, callback, retry_pol
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get number of items available to specified user
@@ -6654,7 +7822,7 @@ end
 -- 
 -- User limit API allows you to sell an item in a limited quantity. To configure the purchase limits, go to the Admin section of the desired item type module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- /v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}
 -- @name get_user_item_limit
@@ -6678,10 +7846,10 @@ function M.get_user_item_limit(project_id, item_sku, user_external_id, callback,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Increase number of items available to specified user
@@ -6689,13 +7857,13 @@ end
 -- 
 -- User limit API allows you to sell an item in a limited quantity. To configure the purchase limits, go to the Admin section of the desired item type module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- /v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}
 -- @name add_user_item_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_update_user_limits_strict()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6712,10 +7880,10 @@ function M.add_user_item_limit(project_id, item_sku, body, callback, retry_polic
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Set number of items available to specified user
@@ -6723,13 +7891,13 @@ end
 -- 
 -- User limit API allows you to sell an item in a limited quantity. To configure the purchase limits, go to the Admin section of the desired item type module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- /v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}
 -- @name set_user_item_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_update_user_limits_flexible()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6746,10 +7914,10 @@ function M.set_user_item_limit(project_id, item_sku, body, callback, retry_polic
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Decrease number of items available to specified user
@@ -6757,13 +7925,13 @@ end
 -- 
 -- User limit API allows you to sell an item in a limited quantity. To configure the purchase limits, go to the Admin section of the desired item type module:
 -- * [Game Keys](https://developers.xsolla.com/api/igs/operation/admin-create-game/)
--- * [Virtual Items &amp;amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
+-- * [Virtual Items &amp; Currency](https://developers.xsolla.com/api/igs/operation/admin-get-virtual-items-list/)
 -- * [Bundles](https://developers.xsolla.com/api/igs/operation/admin-get-bundle-list/)
 -- /v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}
 -- @name remove_user_item_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_update_user_limits_strict()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6780,10 +7948,10 @@ function M.remove_user_item_limit(project_id, item_sku, body, callback, retry_po
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Refresh all promotion limits for specified user
@@ -6795,7 +7963,7 @@ end
 -- /v2/project/{project_id}/admin/user/limit/promotion/all
 -- @name reset_all_user_promotions_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_reset_user_limits()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6810,10 +7978,10 @@ function M.reset_all_user_promotions_limit(project_id, body, callback, retry_pol
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Refresh promotion limit for users
@@ -6826,7 +7994,7 @@ end
 -- @name reset_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param promotion_id (REQUIRED) Promotion ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_reset_user_limits_flexible()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6843,10 +8011,10 @@ function M.reset_user_promotion_limit(project_id, promotion_id, body, callback, 
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get promotion limit for specified user
@@ -6877,10 +8045,10 @@ function M.get_user_promotion_limit(project_id, promotion_id, user_external_id, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Increase promotion limit for specified user
@@ -6893,7 +8061,7 @@ end
 -- @name add_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param promotion_id (REQUIRED) Promotion ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_update_user_limits_strict()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6910,10 +8078,10 @@ function M.add_user_promotion_limit(project_id, promotion_id, body, callback, re
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Set promotion limit for specified user
@@ -6926,7 +8094,7 @@ end
 -- @name set_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param promotion_id (REQUIRED) Promotion ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_update_user_limits_flexible()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6943,10 +8111,10 @@ function M.set_user_promotion_limit(project_id, promotion_id, body, callback, re
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Decrease promotion limit for specified user
@@ -6959,7 +8127,7 @@ end
 -- @name remove_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param promotion_id (REQUIRED) Promotion ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_update_user_limits_strict()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -6976,10 +8144,10 @@ function M.remove_user_promotion_limit(project_id, promotion_id, body, callback,
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get promo code limit for specified user
@@ -7009,10 +8177,10 @@ function M.get_promo_code_user_limit(project_id, external_id, user_external_id, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Increase promo code limit for specified user
@@ -7024,7 +8192,7 @@ end
 -- @name add_promo_code_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_update_promo_code_user_limits_strict()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7041,10 +8209,10 @@ function M.add_promo_code_user_promotion_limit(project_id, external_id, body, ca
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Set promo code limit for specified user
@@ -7056,7 +8224,7 @@ end
 -- @name set_promo_code_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_update_promo_code_user_limits_flexible()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7073,10 +8241,10 @@ function M.set_promo_code_user_promotion_limit(project_id, external_id, body, ca
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Decrease promo code limit for specified user
@@ -7088,7 +8256,7 @@ end
 -- @name remove_promo_code_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_update_promo_code_user_limits_strict()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7105,10 +8273,10 @@ function M.remove_promo_code_user_promotion_limit(project_id, external_id, body,
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get coupon limit for specified user
@@ -7138,10 +8306,10 @@ function M.get_coupon_user_limit(project_id, external_id, user_external_id, call
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Increase coupon limit for specified user
@@ -7153,7 +8321,7 @@ end
 -- @name add_coupon_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_update_coupon_user_limits_strict()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7170,10 +8338,10 @@ function M.add_coupon_user_promotion_limit(project_id, external_id, body, callba
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Set coupon limit for specified user
@@ -7185,7 +8353,7 @@ end
 -- @name set_coupon_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_update_coupon_user_limits_flexible()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7202,10 +8370,10 @@ function M.set_coupon_user_promotion_limit(project_id, external_id, body, callba
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Decrease coupon limit for specified user
@@ -7217,7 +8385,7 @@ end
 -- @name remove_coupon_user_promotion_limit
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_update_coupon_user_limits_strict()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7234,10 +8402,10 @@ function M.remove_coupon_user_promotion_limit(project_id, external_id, body, cal
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get promo code limit for codes
@@ -7270,10 +8438,10 @@ function M.get_promo_code_code_limit(project_id, external_id, codes, limit, offs
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get unique coupon code limits
@@ -7306,10 +8474,10 @@ function M.get_coupon_code_limit(project_id, external_id, codes, limit, offset, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of value points for administration
@@ -7334,10 +8502,10 @@ function M.admin_get_value_points_list(project_id, limit, offset, callback, retr
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create value point
@@ -7345,7 +8513,7 @@ end
 -- /v2/project/{project_id}/admin/items/value_points
 -- @name admin_create_value_points
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_create_value_point()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7360,10 +8528,10 @@ function M.admin_create_value_points(project_id, body, callback, retry_policy, c
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get value point
@@ -7387,10 +8555,10 @@ function M.admin_get_value_point(project_id, item_sku, callback, retry_policy, c
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update value point
@@ -7399,7 +8567,7 @@ end
 -- @name admin_update_value_point
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
--- @param body
+-- @param body Create using body_create_value_point()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7416,10 +8584,10 @@ function M.admin_update_value_point(project_id, item_sku, body, callback, retry_
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete value points
@@ -7443,10 +8611,10 @@ function M.admin_delete_value_point(project_id, item_sku, callback, retry_policy
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of items with value points
@@ -7470,10 +8638,10 @@ function M.admin_get_items_value_point_reward(project_id, value_point_sku, callb
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Set value points for items
@@ -7483,12 +8651,12 @@ end
 -- 
 -- To avoid unintentional deletion of value points, include all items and their respective value points in each PUT request.
 -- 
--- If you only want to update the value points for a specific item while preserving the value points of other items, you should retrieve the current set of value points using a GET request, modify the desired item&amp;#x27;s value points, and then send the modified set of value points back with the updated value points for the specific item.
+-- If you only want to update the value points for a specific item while preserving the value points of other items, you should retrieve the current set of value points using a GET request, modify the desired item&#x27;s value points, and then send the modified set of value points back with the updated value points for the specific item.
 -- /v2/project/{project_id}/admin/items/{value_point_sku}/value_points/rewards
 -- @name admin_set_items_value_point_reward
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param value_point_sku (REQUIRED) Value Point SKU.
--- @param body
+-- @param body Create using body_set_item_value_point_reward()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7505,10 +8673,10 @@ function M.admin_set_items_value_point_reward(project_id, value_point_sku, body,
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Partially update value points for items
@@ -7526,7 +8694,7 @@ end
 -- @name admin_patch_items_value_point_reward
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param value_point_sku (REQUIRED) Value Point SKU.
--- @param body
+-- @param body Create using body_set_item_value_point_reward_for_patch()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7543,10 +8711,10 @@ function M.admin_patch_items_value_point_reward(project_id, value_point_sku, bod
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete value points from items
@@ -7570,10 +8738,10 @@ function M.admin_delete_items_value_point_reward(project_id, value_point_sku, ca
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get current user&#x27;s reward chains
@@ -7602,10 +8770,10 @@ function M.get_reward_chains_list(project_id, limit, offset, callback, retry_pol
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get current user&#x27;s value point balance
@@ -7629,10 +8797,10 @@ function M.get_user_reward_chain_balance(project_id, reward_chain_id, callback, 
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Claim step reward
@@ -7659,14 +8827,14 @@ function M.claim_user_reward_chain_step_reward(project_id, reward_chain_id, step
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get top 10 contributors to reward chain under clan
--- Retrieves the list of top 10 contributors to the specific reward chain under the current user&amp;#x27;s clan. If a user doesn&amp;#x27;t belong to a clan, the call returns an empty array.
+-- Retrieves the list of top 10 contributors to the specific reward chain under the current user&#x27;s clan. If a user doesn&#x27;t belong to a clan, the call returns an empty array.
 -- /v2/project/{project_id}/user/clan/contributors/{reward_chain_id}/top
 -- @name get_user_clan_top_contributors
 -- @param project_id (REQUIRED) Project ID.
@@ -7686,14 +8854,14 @@ function M.get_user_clan_top_contributors(project_id, reward_chain_id, callback,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update current user&#x27;s clan
--- Updates a current user&amp;#x27;s clan via user attributes. Claims all rewards from reward chains that were not claimed for a previous clan and returns them in the response. If the user was in a clan and now is not — their inclusion in the clan will be revoked. If the user changed the clan — the clan will be changed.
+-- Updates a current user&#x27;s clan via user attributes. Claims all rewards from reward chains that were not claimed for a previous clan and returns them in the response. If the user was in a clan and now is not — their inclusion in the clan will be revoked. If the user changed the clan — the clan will be changed.
 -- /v2/project/{project_id}/user/clan/update
 -- @name user_clan_update
 -- @param project_id (REQUIRED) Project ID.
@@ -7710,10 +8878,10 @@ function M.user_clan_update(project_id, callback, retry_policy, cancellation_tok
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of reward chains
@@ -7744,10 +8912,10 @@ function M.admin_get_reward_chains(project_id, limit, offset, enabled, callback,
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create reward chain
@@ -7755,7 +8923,7 @@ end
 -- /v2/project/{project_id}/admin/reward_chain
 -- @name admin_create_reward_chain
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_create_reward_chain()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7770,10 +8938,10 @@ function M.admin_create_reward_chain(project_id, body, callback, retry_policy, c
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get reward chain
@@ -7797,10 +8965,10 @@ function M.admin_get_reward_chain(project_id, reward_chain_id, callback, retry_p
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update reward chain
@@ -7809,7 +8977,7 @@ end
 -- @name admin_update_reward_chain
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param reward_chain_id (REQUIRED) Reward chain ID.
--- @param body
+-- @param body Create using body_update_reward_chain()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7826,10 +8994,10 @@ function M.admin_update_reward_chain(project_id, reward_chain_id, body, callback
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete reward chain
@@ -7853,10 +9021,10 @@ function M.admin_delete_reward_chain(project_id, reward_chain_id, callback, retr
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Toggle reward chain
@@ -7880,10 +9048,10 @@ function M.admin_toggle_reward_chain(project_id, reward_chain_id, callback, retr
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Reset reward chain
@@ -7914,10 +9082,10 @@ function M.admin_reset_reward_chain(project_id, reward_chain_id, callback, retry
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create unique catalog offer promotion
@@ -7925,7 +9093,7 @@ end
 -- /v2/project/{project_id}/admin/unique_catalog_offer
 -- @name admin_create_unique_catalog_offer
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_promotions_unique_catalog_offer_create()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7940,10 +9108,10 @@ function M.admin_create_unique_catalog_offer(project_id, body, callback, retry_p
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get list of unique catalog offer promotions
@@ -7968,10 +9136,10 @@ function M.get_unique_catalog_offers(project_id, limit, offset, callback, retry_
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Update unique catalog offer promotion
@@ -7980,7 +9148,7 @@ end
 -- @name update_unique_catalog_offer_promotion
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_promotions_unique_catalog_offer_update()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -7997,10 +9165,10 @@ function M.update_unique_catalog_offer_promotion(project_id, external_id, body, 
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get unique catalog offer promotion
@@ -8024,10 +9192,10 @@ function M.get_unique_catalog_offer(project_id, external_id, callback, retry_pol
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Delete unique catalog offer promotion
@@ -8055,10 +9223,10 @@ function M.delete_unique_catalog_offer_promotion(project_id, external_id, callba
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Activate unique catalog offer promotion
@@ -8085,10 +9253,10 @@ function M.activate_unique_catalog_offer(project_id, external_id, callback, retr
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Deactivate unique catalog offer promotion
@@ -8115,10 +9283,10 @@ function M.deactivate_unique_catalog_offer(project_id, external_id, callback, re
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Create unique catalog offer code
@@ -8127,7 +9295,7 @@ end
 -- @name create_unique_catalog_offer_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_promotions_create_coupon_promocode_code()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -8144,10 +9312,10 @@ function M.create_unique_catalog_offer_code(project_id, external_id, body, callb
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get unique catalog offer codes
@@ -8175,10 +9343,10 @@ function M.get_unique_catalog_offer_codes(project_id, external_id, limit, offset
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Generate unique catalog offer codes
@@ -8187,7 +9355,7 @@ end
 -- @name generate_unique_catalog_offer_codes
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Promotion external ID. Unique promotion identifier within the project.
--- @param body
+-- @param body Create using body_()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -8204,10 +9372,10 @@ function M.generate_unique_catalog_offer_codes(project_id, external_id, body, ca
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Import items via JSON file
@@ -8215,7 +9383,7 @@ end
 -- /v1/projects/{project_id}/import/from_external_file
 -- @name import_items_from_external_file
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param body
+-- @param body Create using body_connector_import_items_body()
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
@@ -8230,10 +9398,10 @@ function M.import_items_from_external_file(project_id, body, callback, retry_pol
 
     local post_data = body
 
-
     return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 --- Get status of items import
@@ -8254,10 +9422,10 @@ function M.get_items_import_status(project_id, callback, retry_policy, cancellat
 
     local post_data = nil
 
-
     return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 
 return M

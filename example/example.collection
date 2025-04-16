@@ -6,5 +6,9 @@ embedded_instances {
   "  id: \"example\"\n"
   "  component: \"/example/example.script\"\n"
   "}\n"
+  "components {\n"
+  "  id: \"example1\"\n"
+  "  component: \"/example/example.gui\"\n"
+  "}\n"
   ""
 }

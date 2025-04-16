@@ -1,0 +1,136 @@
+local igs = require("xsolla.igs")
+local log = require("xsolla.util.log")
+log.print()
+
+local PROJECT_ID = "281706"
+local DEBUG_BEARER_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI"
+
+local function show_spinner()
+	local spinner = gui.get_node("spinner")
+	gui.set_enabled(spinner, true)
+	gui.animate(spinner, "euler.z", -360, gui.EASING_INOUTQUAD, 2, 0, nil, gui.PLAYBACK_LOOP_FORWARD)
+end
+
+local function hide_spinner()
+	local spinner = gui.get_node("spinner")
+	gui.set_enabled(spinner, false)
+	gui.cancel_animation(spinner, gui.PROP_EULER)
+	gui.set_euler(spinner, vmath.vector3(0))
+end
+
+local function hide_buttons(self)
+	for i=1,#self.buttons do
+		local button = self.buttons[i]
+		gui.set_enabled(button.bg, false)
+	end
+end
+
+local function buy_item(self, item)
+	print("buy", item.name)
+	
+	hide_buttons(self)
+	show_spinner()
+	igs.sync(function()
+		local body =
+		{
+		  sandbox = false,
+		  quantity = 1,
+		  promo_code = nil,
+		  settings = 
+		  {
+		    ui = 
+		    {
+		      theme = nil,
+		      desktop = 
+		      {
+		        header = 
+		        {
+		          is_visible = true,
+		          visible_logo = true,
+		          visible_name = true,
+		          visible_purchase = true,
+		          type = "normal",
+		          close_button = false,
+		        },
+		      },
+		    },
+		  },
+		}
+		local token = igs.create_order_with_item(PROJECT_ID, item.sku, json.encode(body))
+		print(token)
+
+	end)
+end
+
+local function get_sellable_items(self)
+	hide_buttons(self)
+	show_spinner()
+	igs.sync(function()
+		local limit = 5
+		local offset = 0
+		local locale = "en"
+		local additional_fields = nil
+		local country = "US"
+		local promo_code = "WINTER2021"
+		local show_inactive_time_limited_items=1
+		local items = igs.get_sellable_items(PROJECT_ID, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items)
+		hide_spinner()
+		if not items then
+			return
+		end
+		items = items["items"]
+		for i=1,#items do
+			local button = self.buttons[i]
+			local item = items[i]
+			if button then
+				button.item = item
+				pprint(item)
+				gui.set_enabled(button.bg, true)
+				local name = item.name
+				local amount = item.is_free and "FREE" or item.price.amount
+				local currency = item.is_free and "" or item.price.currency
+				local text = ("%s - %s%s"):format(name, amount, currency)
+				gui.set_text(button.text, text)
+			end
+		end
+
+		-- project_id, currency, locale
+		-- local cart = igs.get_user_cart(PROJECT_ID)
+		-- pprint(cart)
+	end)
+end
+
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	-- create buttons
+	self.buttons = {}
+	for i=1,7 do
+		local button = {
+			index = i,
+			bg = gui.get_node("button" .. i .. "/bg"),
+			text = gui.get_node("button" .. i .. "/text"),
+		}
+		table.insert(self.buttons, button)
+	end
+
+	igs.set_bearer_token(DEBUG_BEARER_TOKEN)
+	get_sellable_items(self)
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Learn more: https://defold.com/manuals/message-passing/
+	-- Remove this function if not needed
+end
+
+function on_input(self, action_id, action)
+	if action.pressed then
+		for i=1,#self.buttons do
+			local button = self.buttons[i]
+			if gui.is_enabled(button.bg) and gui.pick_node(button.bg, action.x, action.y) then
+				buy_item(self, button.item)
+			end
+		end
+	end
+end

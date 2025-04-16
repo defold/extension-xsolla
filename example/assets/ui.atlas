@@ -1,0 +1,16 @@
+images {
+  image: "/example/assets/images/grey_button06.png"
+}
+images {
+  image: "/example/assets/images/grey_panel.png"
+}
+images {
+  image: "/example/assets/images/green_button06.png"
+}
+images {
+  image: "/example/assets/images/red_button03.png"
+}
+images {
+  image: "/example/assets/images/grey_crossGrey.png"
+}
+extrude_borders: 2

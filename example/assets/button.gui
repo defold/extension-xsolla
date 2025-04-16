@@ -1,0 +1,43 @@
+fonts {
+  name: "text"
+  font: "/example/assets/text.font"
+}
+textures {
+  name: "ui"
+  texture: "/example/assets/ui.atlas"
+}
+nodes {
+  size {
+    x: 360.0
+    y: 45.0
+  }
+  type: TYPE_BOX
+  texture: "ui/green_button06"
+  id: "bg"
+  inherit_alpha: true
+  slice9 {
+    x: 16.0
+    y: 16.0
+    z: 16.0
+    w: 16.0
+  }
+}
+nodes {
+  size {
+    x: 340.0
+    y: 40.0
+  }
+  color {
+    x: 0.102
+    y: 0.102
+    z: 0.102
+  }
+  type: TYPE_TEXT
+  text: "<text>"
+  font: "text"
+  id: "text"
+  parent: "bg"
+  inherit_alpha: true
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

@@ -103,27 +103,41 @@ end
 {{#components}}
 {{#requestBodies}}
 
+--- Create {{id}} data structure
+-- @param t Table with properties.{{#content}}{{#application/json}}{{#schema}}{{^oneof}} Acceptable table keys:{{/oneof}}{{/schema}}{{/application/json}}{{/content}}
+{{#schema}}
+{{#properties}}
+--   * {{id}} - [{{type}}] {{{description}}}
+{{#array}}
+{{#items}}
+{{#object}}
+{{.}}
+{{/object}}
+{{/items}}
+{{/array}}
+{{/properties}}
+{{/schema}}
+-- @example
+{{{example}}}
 function M.body_{{id}}(t)
-{{#content}}
-{{#application/json}}
+    assert(t)
 {{#schema}}
 {{#required}}
     assert(t.{{.}})
 {{/required}}
 {{/schema}}
-{{/application/json}}
-{{/content}}
-{{#content}}
-{{#application/json}}
 {{#schema}}
+    {{#oneof}}
+    return json.encode(t)
+    {{/oneof}}
+    {{^oneof}}
     return json.encode({
         {{#properties}}
         ["{{id}}"] = t.{{id}},
         {{/properties}}
-  })
+    })
+    {{/oneof}}
 {{/schema}}
-{{/application/json}}
-{{/content}}
 end
 
 {{/requestBodies}}
@@ -139,7 +153,7 @@ end
 -- @param {{name}} {{#required}}(REQUIRED) {{/required}}{{description}}
 {{/parameters}}
 {{#requestBody}}
--- @param body
+-- @param body Create using body_{{id}}()
 {{/requestBody}}
 -- @param callback
 -- @param retry_policy
@@ -170,10 +184,10 @@ function M.{{operationId}}({{#parameters}}{{name}}, {{/parameters}}{{#requestBod
 
     local post_data = {{#requestBody}}body{{/requestBody}}{{^requestBody}}nil{{/requestBody}}
 
-
     return http(callback, url_path, query_params, "{{method}}", post_data, retry_policy, cancellation_token, function(result)
+        -- TODO
         return result
-  end)
+    end)
 end
 {{/paths}}
 

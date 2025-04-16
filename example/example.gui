@@ -1,0 +1,200 @@
+script: "/example/example.gui_script"
+fonts {
+  name: "text"
+  font: "/example/assets/text.font"
+}
+textures {
+  name: "ui"
+  texture: "/example/assets/ui.atlas"
+}
+nodes {
+  position {
+    x: 480.0
+    y: 320.0
+  }
+  size {
+    x: 1.0
+    y: 1.0
+  }
+  type: TYPE_BOX
+  id: "root"
+  inherit_alpha: true
+}
+nodes {
+  size {
+    x: 380.0
+    y: 380.0
+  }
+  type: TYPE_BOX
+  texture: "ui/grey_panel"
+  id: "bg"
+  parent: "root"
+  inherit_alpha: true
+  slice9 {
+    x: 16.0
+    y: 16.0
+    z: 16.0
+    w: 16.0
+  }
+}
+nodes {
+  position {
+    y: 150.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button1"
+  parent: "bg"
+  inherit_alpha: true
+  template: "/example/assets/button.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "button1/bg"
+  parent: "button1"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "button1/text"
+  parent: "button1/bg"
+  template_node_child: true
+}
+nodes {
+  position {
+    y: 100.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button2"
+  parent: "bg"
+  inherit_alpha: true
+  template: "/example/assets/button.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "button2/bg"
+  parent: "button2"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "button2/text"
+  parent: "button2/bg"
+  template_node_child: true
+}
+nodes {
+  position {
+    y: 50.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button3"
+  parent: "bg"
+  inherit_alpha: true
+  template: "/example/assets/button.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "button3/bg"
+  parent: "button3"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "button3/text"
+  parent: "button3/bg"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEMPLATE
+  id: "button4"
+  parent: "bg"
+  inherit_alpha: true
+  template: "/example/assets/button.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "button4/bg"
+  parent: "button4"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "button4/text"
+  parent: "button4/bg"
+  template_node_child: true
+}
+nodes {
+  position {
+    y: -50.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button5"
+  parent: "bg"
+  inherit_alpha: true
+  template: "/example/assets/button.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "button5/bg"
+  parent: "button5"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "button5/text"
+  parent: "button5/bg"
+  template_node_child: true
+}
+nodes {
+  position {
+    y: -100.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button6"
+  parent: "bg"
+  inherit_alpha: true
+  template: "/example/assets/button.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "button6/bg"
+  parent: "button6"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "button6/text"
+  parent: "button6/bg"
+  template_node_child: true
+}
+nodes {
+  position {
+    y: -150.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button7"
+  parent: "bg"
+  inherit_alpha: true
+  template: "/example/assets/button.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "button7/bg"
+  parent: "button7"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "button7/text"
+  parent: "button7/bg"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "ui/grey_crossGrey"
+  id: "spinner"
+  parent: "bg"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
