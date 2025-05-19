@@ -80,13 +80,17 @@ local function http(callback, url_path, query_params, method, post_data, retry_p
         log(url_path, "with callback")
         net.http(config, url_path, query_params, method, post_data, retry_policy, cancellation_token, function(result)
             if not cancellation_token or not cancellation_token.cancelled then
-                callback(handler_fn(result))
+                if result.error then
+                    callback(handler_fn(false, result))
+                else
+                    callback(handler_fn(result))
+                end
             end
         end)
     else
         log(url_path, "with coroutine")
         local co = coroutine.running()
-        assert(co, "You must be running this from withing a coroutine")
+        assert(co, "You must be running this from within a coroutine")
 
         -- get cancellation token associated with this coroutine
         cancellation_token = cancellation_tokens[co]
@@ -101,7 +105,11 @@ local function http(callback, url_path, query_params, method, post_data, retry_p
                     cancellation_tokens[co] = nil
                     return
                 end
-                done(handler_fn(result))
+                if result.error then
+                    done(handler_fn(false, result))
+                else
+                    done(handler_fn(result))
+                end
             end)
         end)
     end
@@ -1909,7 +1917,7 @@ function M.admin_get_attribute_list(project_id, limit, offset, callback, retry_p
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/attribute"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -1917,9 +1925,8 @@ function M.admin_get_attribute_list(project_id, limit, offset, callback, retry_p
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -1937,15 +1944,14 @@ function M.admin_create_attribute(project_id, body, callback, retry_policy, canc
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/attribute"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -1965,16 +1971,15 @@ function M.admin_update_attribute(project_id, external_id, body, callback, retry
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/attribute/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -1992,16 +1997,15 @@ function M.admin_get_attribute(project_id, external_id, callback, retry_policy, 
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/attribute/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2019,16 +2023,15 @@ function M.delete_attribute(project_id, external_id, callback, retry_policy, can
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/attribute/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2052,16 +2055,15 @@ function M.admin_create_attribute_value(project_id, external_id, body, callback,
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/attribute/{external_id}/value"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2079,16 +2081,15 @@ function M.admin_delete_all_attribute_value(project_id, external_id, callback, r
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/attribute/{external_id}/value"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2110,17 +2111,16 @@ function M.admin_update_attribute_value(project_id, value_external_id, external_
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/attribute/{external_id}/value/{value_external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{value_external_id}", uri.encode(value_external_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{value_external_id}", uri.encode(tostring(value_external_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2140,17 +2140,16 @@ function M.admin_delete_attribute_value(project_id, value_external_id, external_
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/attribute/{external_id}/value/{value_external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{value_external_id}", uri.encode(value_external_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{value_external_id}", uri.encode(tostring(value_external_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2169,7 +2168,7 @@ function M.get_filter_rules(project_id, limit, offset, is_enabled, callback, ret
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/attribute/rule"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -2178,9 +2177,8 @@ function M.get_filter_rules(project_id, limit, offset, is_enabled, callback, ret
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2198,15 +2196,14 @@ function M.create_filter_rule(project_id, body, callback, retry_policy, cancella
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/attribute/rule"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2225,15 +2222,14 @@ function M.get_all_filter_rules(project_id, callback, retry_policy, cancellation
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/attribute/rule/all"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2251,16 +2247,15 @@ function M.get_filter_rule_by_id(project_id, rule_id, callback, retry_policy, ca
     assert(rule_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/attribute/rule/{rule_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{rule_id}", uri.encode(rule_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{rule_id}", uri.encode(tostring(rule_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2280,16 +2275,15 @@ function M.update_filter_rule_by_id(project_id, rule_id, body, callback, retry_p
     assert(rule_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/attribute/rule/{rule_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{rule_id}", uri.encode(rule_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{rule_id}", uri.encode(tostring(rule_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2309,16 +2303,15 @@ function M.patch_filter_rule_by_id(project_id, rule_id, body, callback, retry_po
     assert(rule_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/attribute/rule/{rule_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{rule_id}", uri.encode(rule_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{rule_id}", uri.encode(tostring(rule_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2336,16 +2329,15 @@ function M.delete_filter_rule_by_id(project_id, rule_id, callback, retry_policy,
     assert(rule_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/attribute/rule/{rule_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{rule_id}", uri.encode(rule_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{rule_id}", uri.encode(tostring(rule_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2368,7 +2360,7 @@ function M.admin_get_bundle_list(project_id, limit, offset, promo_code, callback
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/bundle"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -2377,9 +2369,8 @@ function M.admin_get_bundle_list(project_id, limit, offset, promo_code, callback
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2397,15 +2388,14 @@ function M.admin_create_bundle(project_id, body, callback, retry_policy, cancell
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/bundle"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2430,8 +2420,8 @@ function M.admin_get_bundle_list_in_group_by_id(project_id, group_id, limit, off
     assert(group_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/bundle/group/id/{group_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{group_id}", uri.encode(group_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{group_id}", uri.encode(tostring(group_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -2440,9 +2430,8 @@ function M.admin_get_bundle_list_in_group_by_id(project_id, group_id, limit, off
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2467,8 +2456,8 @@ function M.admin_get_bundle_list_in_group_by_external_id(project_id, external_id
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/bundle/group/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -2477,9 +2466,8 @@ function M.admin_get_bundle_list_in_group_by_external_id(project_id, external_id
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2499,16 +2487,15 @@ function M.admin_update_bundle(project_id, sku, body, callback, retry_policy, ca
     assert(sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/bundle/sku/{sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{sku}", uri.encode(sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{sku}", uri.encode(tostring(sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2526,16 +2513,15 @@ function M.admin_delete_bundle(project_id, sku, callback, retry_policy, cancella
     assert(sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/bundle/sku/{sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{sku}", uri.encode(sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{sku}", uri.encode(tostring(sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2558,17 +2544,16 @@ function M.admin_get_bundle(project_id, sku, promo_code, callback, retry_policy,
     assert(sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/bundle/sku/{sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{sku}", uri.encode(sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{sku}", uri.encode(tostring(sku)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2586,16 +2571,15 @@ function M.admin_show_bundle(project_id, sku, callback, retry_policy, cancellati
     assert(sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/bundle/sku/{sku}/show"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{sku}", uri.encode(sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{sku}", uri.encode(tostring(sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2613,16 +2597,15 @@ function M.admin_hide_bundle(project_id, sku, callback, retry_policy, cancellati
     assert(sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/bundle/sku/{sku}/hide"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{sku}", uri.encode(sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{sku}", uri.encode(tostring(sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2653,7 +2636,7 @@ function M.get_bundle_list(project_id, limit, offset, locale, additional_fields,
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/bundle"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -2666,9 +2649,8 @@ function M.get_bundle_list(project_id, limit, offset, locale, additional_fields,
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2692,8 +2674,8 @@ function M.get_bundle(project_id, sku, promo_code, show_inactive_time_limited_it
     assert(sku)
 
     local url_path = "/v2/project/{project_id}/items/bundle/sku/{sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{sku}", uri.encode(sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{sku}", uri.encode(tostring(sku)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
@@ -2701,9 +2683,8 @@ function M.get_bundle(project_id, sku, promo_code, show_inactive_time_limited_it
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2736,8 +2717,8 @@ function M.get_bundle_list_in_group(project_id, external_id, limit, offset, loca
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/items/bundle/group/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -2750,9 +2731,8 @@ function M.get_bundle_list_in_group(project_id, external_id, limit, offset, loca
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2772,8 +2752,8 @@ function M.get_cart_by_id(project_id, cart_id, currency, locale, callback, retry
     assert(cart_id)
 
     local url_path = "/v2/project/{project_id}/cart/{cart_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{cart_id}", uri.encode(cart_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{cart_id}", uri.encode(tostring(cart_id)))
 
     local query_params = {}
     query_params["currency"] = currency
@@ -2781,9 +2761,8 @@ function M.get_cart_by_id(project_id, cart_id, currency, locale, callback, retry
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2801,7 +2780,7 @@ function M.get_user_cart(project_id, currency, locale, callback, retry_policy, c
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/cart"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["currency"] = currency
@@ -2809,9 +2788,8 @@ function M.get_user_cart(project_id, currency, locale, callback, retry_policy, c
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2829,16 +2807,15 @@ function M.cart_clear_by_id(project_id, cart_id, callback, retry_policy, cancell
     assert(cart_id)
 
     local url_path = "/v2/project/{project_id}/cart/{cart_id}/clear"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{cart_id}", uri.encode(cart_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{cart_id}", uri.encode(tostring(cart_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2854,15 +2831,14 @@ function M.cart_clear(project_id, callback, retry_policy, cancellation_token)
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/cart/clear"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2880,15 +2856,14 @@ function M.cart_fill(project_id, body, callback, retry_policy, cancellation_toke
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/cart/fill"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2908,16 +2883,15 @@ function M.cart_fill_by_id(project_id, cart_id, body, callback, retry_policy, ca
     assert(cart_id)
 
     local url_path = "/v2/project/{project_id}/cart/{cart_id}/fill"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{cart_id}", uri.encode(cart_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{cart_id}", uri.encode(tostring(cart_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2939,17 +2913,16 @@ function M.put_item_by_cart_id(project_id, cart_id, item_sku, body, callback, re
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/cart/{cart_id}/item/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{cart_id}", uri.encode(cart_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{cart_id}", uri.encode(tostring(cart_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2969,17 +2942,16 @@ function M.delete_item_by_cart_id(project_id, cart_id, item_sku, callback, retry
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/cart/{cart_id}/item/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{cart_id}", uri.encode(cart_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{cart_id}", uri.encode(tostring(cart_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -2999,16 +2971,15 @@ function M.put_item(project_id, item_sku, body, callback, retry_policy, cancella
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/cart/item/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3026,16 +2997,15 @@ function M.delete_item(project_id, item_sku, callback, retry_policy, cancellatio
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/cart/item/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3065,16 +3035,15 @@ function M.create_order_by_cart_id(project_id, cart_id, body, callback, retry_po
     assert(cart_id)
 
     local url_path = "/v2/project/{project_id}/payment/cart/{cart_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{cart_id}", uri.encode(cart_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{cart_id}", uri.encode(tostring(cart_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3102,15 +3071,14 @@ function M.create_order(project_id, body, callback, retry_policy, cancellation_t
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/payment/cart"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3140,16 +3108,15 @@ function M.create_order_with_item(project_id, item_sku, body, callback, retry_po
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/payment/item/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3167,15 +3134,14 @@ function M.create_free_order(project_id, body, callback, retry_policy, cancellat
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/free/cart"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3195,16 +3161,15 @@ function M.create_free_order_by_cart_id(project_id, cart_id, body, callback, ret
     assert(cart_id)
 
     local url_path = "/v2/project/{project_id}/free/cart/{cart_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{cart_id}", uri.encode(cart_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{cart_id}", uri.encode(tostring(cart_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3224,16 +3189,15 @@ function M.create_free_order_with_item(project_id, item_sku, body, callback, ret
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/free/item/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3251,16 +3215,15 @@ function M.get_order(project_id, order_id, callback, retry_policy, cancellation_
     assert(order_id)
 
     local url_path = "/v2/project/{project_id}/order/{order_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{order_id}", uri.encode(order_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{order_id}", uri.encode(tostring(order_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3278,15 +3241,14 @@ function M.admin_order_search(project_id, body, callback, retry_policy, cancella
     assert(project_id)
 
     local url_path = "/v3/project/{project_id}/admin/order/search"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3318,15 +3280,14 @@ function M.admin_create_payment_token(project_id, body, callback, retry_policy, 
     assert(project_id)
 
     local url_path = "/v3/project/{project_id}/admin/payment/token"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3348,16 +3309,15 @@ function M.admin_cart_fill(project_id, locale, x_user_for, x_user_id, body, call
     assert(project_id)
 
     local url_path = "/v2/admin/project/{project_id}/cart/fill"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["locale"] = locale
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3381,17 +3341,16 @@ function M.admin_fill_cart_by_id(project_id, cart_id, locale, x_user_for, x_user
     assert(cart_id)
 
     local url_path = "/v2/admin/project/{project_id}/cart/{cart_id}/fill"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{cart_id}", uri.encode(cart_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{cart_id}", uri.encode(tostring(cart_id)))
 
     local query_params = {}
     query_params["locale"] = locale
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3408,15 +3367,14 @@ function M.get_webhook(project_id, callback, retry_policy, cancellation_token)
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/webhook"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3435,15 +3393,14 @@ function M.update_webhook(project_id, body, callback, retry_policy, cancellation
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/webhook"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3469,16 +3426,15 @@ function M.get_pre_order_limit(project_id, item_sku, callback, retry_policy, can
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/pre_order/limit/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3506,16 +3462,15 @@ function M.add_pre_order_limit(project_id, item_sku, body, callback, retry_polic
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/pre_order/limit/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3543,16 +3498,15 @@ function M.set_pre_order_limit(project_id, item_sku, body, callback, retry_polic
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/pre_order/limit/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3580,16 +3534,15 @@ function M.remove_pre_order_limit(project_id, item_sku, body, callback, retry_po
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/pre_order/limit/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3617,16 +3570,15 @@ function M.toggle_pre_order_limit(project_id, item_sku, body, callback, retry_po
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/pre_order/limit/item/sku/{item_sku}/toggle"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3652,16 +3604,15 @@ function M.remove_all_pre_order_limit(project_id, item_sku, callback, retry_poli
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/pre_order/limit/item/sku/{item_sku}/all"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3677,15 +3628,14 @@ function M.get_upsell_configurations_for_project_admin(project_id, callback, ret
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/upsell"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3703,15 +3653,14 @@ function M.post_upsell(project_id, body, callback, retry_policy, cancellation_to
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/upsell"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3729,15 +3678,14 @@ function M.put_upsell(project_id, body, callback, retry_policy, cancellation_tok
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/upsell"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3755,16 +3703,15 @@ function M.put_upsell_toggle_active_inactive(project_id, toggle, callback, retry
     assert(toggle)
 
     local url_path = "/v2/project/{project_id}/admin/items/upsell/{toggle}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{toggle}", uri.encode(toggle))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{toggle}", uri.encode(tostring(toggle)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3780,15 +3727,14 @@ function M.get_upsell_for_project_client(project_id, callback, retry_policy, can
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/upsell"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3810,7 +3756,7 @@ function M.get_projects(limit, offset, merchant_id, callback, retry_policy, canc
     assert(merchant_id)
 
     local url_path = "/v2/merchant/{merchant_id}/projects"
-    url_path = url_path:gsub("{merchant_id}", uri.encode(merchant_id))
+    url_path = url_path:gsub("{merchant_id}", uri.encode(tostring(merchant_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -3818,9 +3764,8 @@ function M.get_projects(limit, offset, merchant_id, callback, retry_policy, canc
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3851,7 +3796,7 @@ function M.get_games_list(project_id, limit, offset, locale, additional_fields, 
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/game"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -3864,9 +3809,8 @@ function M.get_games_list(project_id, limit, offset, locale, additional_fields, 
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3899,8 +3843,8 @@ function M.get_games_group(project_id, external_id, limit, offset, locale, addit
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/items/game/group/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -3913,9 +3857,8 @@ function M.get_games_group(project_id, external_id, limit, offset, locale, addit
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3942,8 +3885,8 @@ function M.get_game_by_sku(project_id, item_sku, locale, additional_fields, coun
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/items/game/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
     query_params["locale"] = locale
@@ -3954,9 +3897,8 @@ function M.get_game_by_sku(project_id, item_sku, locale, additional_fields, coun
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -3983,8 +3925,8 @@ function M.get_game_key_by_sku(project_id, item_sku, locale, additional_fields, 
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/items/game/key/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
     query_params["locale"] = locale
@@ -3995,9 +3937,8 @@ function M.get_game_key_by_sku(project_id, item_sku, locale, additional_fields, 
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4030,8 +3971,8 @@ function M.get_game_keys_group(project_id, external_id, limit, offset, locale, a
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/items/game/key/group/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -4044,9 +3985,8 @@ function M.get_game_keys_group(project_id, external_id, limit, offset, locale, a
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4062,15 +4002,14 @@ function M.get_drm_list(project_id, callback, retry_policy, cancellation_token)
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/game/drm"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4088,15 +4027,14 @@ function M.admin_create_game(project_id, body, callback, retry_policy, cancellat
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/game"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4120,7 +4058,7 @@ function M.admin_get_game_list(project_id, limit, offset, promo_code, callback, 
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/game"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -4129,9 +4067,8 @@ function M.admin_get_game_list(project_id, limit, offset, promo_code, callback, 
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4155,17 +4092,16 @@ function M.admin_get_game_by_sku(project_id, item_sku, promo_code, callback, ret
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4185,16 +4121,15 @@ function M.admin_update_game_by_sku(project_id, item_sku, body, callback, retry_
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4212,16 +4147,15 @@ function M.admin_delete_game_by_sku(project_id, item_sku, callback, retry_policy
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4245,17 +4179,16 @@ function M.admin_get_game_by_id(project_id, item_id, promo_code, callback, retry
     assert(item_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4275,16 +4208,15 @@ function M.admin_update_game_by_id(project_id, item_id, body, callback, retry_po
     assert(item_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4302,16 +4234,15 @@ function M.admin_delete_game_by_id(project_id, item_id, callback, retry_policy, 
     assert(item_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4331,16 +4262,15 @@ function M.admin_upload_codes_by_sku(project_id, item_sku, body, callback, retry
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/key/upload/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4360,16 +4290,15 @@ function M.admin_upload_codes_by_id(project_id, item_id, body, callback, retry_p
     assert(item_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/key/upload/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4387,16 +4316,15 @@ function M.admin_get_codes_session(project_id, session_id, callback, retry_polic
     assert(session_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/key/upload/session/{session_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{session_id}", uri.encode(session_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{session_id}", uri.encode(tostring(session_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4421,8 +4349,8 @@ function M.admin_get_codes_by_sku(project_id, item_sku, user_email, quantity, re
     assert(reason)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/key/request/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
     query_params["user_email"] = user_email
@@ -4432,9 +4360,8 @@ function M.admin_get_codes_by_sku(project_id, item_sku, user_email, quantity, re
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4459,8 +4386,8 @@ function M.admin_get_codes_by_id(project_id, item_id, user_email, quantity, reas
     assert(reason)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/key/request/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
     query_params["user_email"] = user_email
@@ -4470,9 +4397,8 @@ function M.admin_get_codes_by_id(project_id, item_id, user_email, quantity, reas
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4495,8 +4421,8 @@ function M.admin_delete_codes_by_sku(project_id, item_sku, user_email, reason, r
     assert(reason)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/key/delete/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
     query_params["user_email"] = user_email
@@ -4505,9 +4431,8 @@ function M.admin_delete_codes_by_sku(project_id, item_sku, user_email, reason, r
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4530,8 +4455,8 @@ function M.admin_delete_codes_by_id(project_id, item_id, user_email, reason, reg
     assert(reason)
 
     local url_path = "/v2/project/{project_id}/admin/items/game/key/delete/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
     query_params["user_email"] = user_email
@@ -4540,9 +4465,8 @@ function M.admin_delete_codes_by_id(project_id, item_id, user_email, reason, reg
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4566,7 +4490,7 @@ function M.get_user_games(project_id, limit, offset, sandbox, additional_fields,
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/entitlement"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -4576,9 +4500,8 @@ function M.get_user_games(project_id, limit, offset, sandbox, additional_fields,
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4600,15 +4523,14 @@ function M.redeem_game_pin_code(project_id, body, callback, retry_policy, cancel
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/entitlement/redeem"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4630,15 +4552,14 @@ function M.grant_entitlement_admin(project_id, body, callback, retry_policy, can
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/entitlement/grant"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4660,15 +4581,14 @@ function M.revoke_entitlement_admin(project_id, body, callback, retry_policy, ca
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/entitlement/revoke"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4697,7 +4617,7 @@ function M.get_physical_goods_list(project_id, limit, offset, locale, additional
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/physical_good"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -4708,9 +4628,8 @@ function M.get_physical_goods_list(project_id, limit, offset, locale, additional
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4728,15 +4647,14 @@ function M.admin_create_physical_item(project_id, body, callback, retry_policy, 
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4758,7 +4676,7 @@ function M.admin_get_physical_item_list(project_id, limit, offset, callback, ret
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -4766,9 +4684,8 @@ function M.admin_get_physical_item_list(project_id, limit, offset, callback, ret
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4789,16 +4706,15 @@ function M.admin_get_physical_item_by_sku(project_id, item_sku, callback, retry_
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4821,16 +4737,15 @@ function M.admin_update_physical_item_by_sku(project_id, item_sku, body, callbac
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4853,16 +4768,15 @@ function M.admin_patch_physical_item_by_sku(project_id, item_sku, body, callback
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4883,16 +4797,15 @@ function M.delete_physical_item(project_id, item_sku, callback, retry_policy, ca
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4910,16 +4823,15 @@ function M.admin_get_physical_item_by_id(project_id, item_id, callback, retry_po
     assert(item_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4939,16 +4851,15 @@ function M.admin_update_physical_item_by_id(project_id, item_id, body, callback,
     assert(item_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4968,16 +4879,15 @@ function M.admin_patch_physical_item_by_id(project_id, item_id, body, callback, 
     assert(item_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -4995,16 +4905,15 @@ function M.delete_physical_item_by_id(project_id, item_id, callback, retry_polic
     assert(item_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5029,15 +4938,14 @@ function M.admin_get_delivery_method(project_id, callback, retry_policy, cancell
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/delivery/method"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5064,15 +4972,14 @@ function M.admin_create_delivery_method(project_id, body, callback, retry_policy
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/delivery/method"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5103,16 +5010,15 @@ function M.admin_get_delivery_method_method_code(project_id, code, callback, ret
     assert(code)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/delivery/method/code/{code}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{code}", uri.encode(code))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{code}", uri.encode(tostring(code)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5145,16 +5051,15 @@ function M.admin_update_delivery_method_method_code(project_id, code, body, call
     assert(code)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/delivery/method/code/{code}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{code}", uri.encode(code))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{code}", uri.encode(tostring(code)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5185,16 +5090,15 @@ function M.admin_delete_delivery_method_method_code(project_id, code, callback, 
     assert(code)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/delivery/method/code/{code}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{code}", uri.encode(code))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{code}", uri.encode(tostring(code)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5227,16 +5131,15 @@ function M.admin_get_delivery_method_price_item_sku(project_id, item_sku, callba
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/delivery/price/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5271,16 +5174,15 @@ function M.admin_add_delivery_method_price_item_sku(project_id, item_sku, body, 
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/delivery/price/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5315,16 +5217,15 @@ function M.admin_delete_delivery_method_price_item_sku(project_id, item_sku, bod
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/delivery/price/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5359,16 +5260,15 @@ function M.admin_replace_delivery_method_price_item_sku(project_id, item_sku, bo
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/physical_good/delivery/price/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5387,7 +5287,7 @@ function M.get_promotion_list(project_id, limit, offset, enabled, callback, retr
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -5396,9 +5296,8 @@ function M.get_promotion_list(project_id, limit, offset, enabled, callback, retr
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5416,16 +5315,15 @@ function M.activate_promotion(project_id, promotion_id, callback, retry_policy, 
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/{promotion_id}/activate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5443,16 +5341,15 @@ function M.deactivate_promotion(project_id, promotion_id, callback, retry_policy
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/{promotion_id}/deactivate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5470,16 +5367,15 @@ function M.get_redeemable_promotion_by_code(project_id, code, callback, retry_po
     assert(code)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/redeemable/code/{code}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{code}", uri.encode(code))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{code}", uri.encode(tostring(code)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5497,15 +5393,14 @@ function M.redeem_coupon(project_id, body, callback, retry_policy, cancellation_
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/coupon/redeem"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5525,16 +5420,15 @@ function M.get_coupon_rewards_by_code(project_id, coupon_code, callback, retry_p
     assert(coupon_code)
 
     local url_path = "/v2/project/{project_id}/coupon/code/{coupon_code}/rewards"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{coupon_code}", uri.encode(coupon_code))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{coupon_code}", uri.encode(tostring(coupon_code)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5552,15 +5446,14 @@ function M.admin_create_coupon(project_id, body, callback, retry_policy, cancell
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5578,7 +5471,7 @@ function M.get_coupons(project_id, limit, offset, callback, retry_policy, cancel
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -5586,9 +5479,8 @@ function M.get_coupons(project_id, limit, offset, callback, retry_policy, cancel
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5608,16 +5500,15 @@ function M.update_coupon_promotion(project_id, external_id, body, callback, retr
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5635,16 +5526,15 @@ function M.get_coupon(project_id, external_id, callback, retry_policy, cancellat
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5667,16 +5557,15 @@ function M.delete_coupon_promotion(project_id, external_id, callback, retry_poli
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5697,16 +5586,15 @@ function M.activate_coupon(project_id, external_id, callback, retry_policy, canc
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon/{external_id}/activate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5727,16 +5615,15 @@ function M.deactivate_coupon(project_id, external_id, callback, retry_policy, ca
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon/{external_id}/deactivate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5756,16 +5643,15 @@ function M.create_coupon_code(project_id, external_id, body, callback, retry_pol
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon/{external_id}/code"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5785,8 +5671,8 @@ function M.get_coupon_codes(project_id, external_id, limit, offset, callback, re
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon/{external_id}/code"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -5794,9 +5680,8 @@ function M.get_coupon_codes(project_id, external_id, limit, offset, callback, re
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5816,16 +5701,15 @@ function M.generate_coupon_codes(project_id, external_id, body, callback, retry_
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/coupon/{external_id}/code/generate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5844,15 +5728,14 @@ function M.redeem_promo_code(project_id, body, callback, retry_policy, cancellat
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/promocode/redeem"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5871,15 +5754,14 @@ function M.remove_cart_promo_code(project_id, body, callback, retry_policy, canc
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/promocode/remove"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5899,16 +5781,15 @@ function M.get_promo_code_rewards_by_code(project_id, promocode_code, callback, 
     assert(promocode_code)
 
     local url_path = "/v2/project/{project_id}/promocode/code/{promocode_code}/rewards"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promocode_code}", uri.encode(promocode_code))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promocode_code}", uri.encode(tostring(promocode_code)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5926,15 +5807,14 @@ function M.create_promo_code(project_id, body, callback, retry_policy, cancellat
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5952,7 +5832,7 @@ function M.get_promo_codes(project_id, limit, offset, callback, retry_policy, ca
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -5960,9 +5840,8 @@ function M.get_promo_codes(project_id, limit, offset, callback, retry_policy, ca
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -5982,16 +5861,15 @@ function M.update_promo_code(project_id, external_id, body, callback, retry_poli
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6009,16 +5887,15 @@ function M.get_promo_code(project_id, external_id, callback, retry_policy, cance
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6041,16 +5918,15 @@ function M.delete_promo_code(project_id, external_id, callback, retry_policy, ca
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6072,16 +5948,15 @@ function M.activate_promo_code(project_id, external_id, callback, retry_policy, 
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode/{external_id}/activate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6103,16 +5978,15 @@ function M.deactivate_promo_code(project_id, external_id, callback, retry_policy
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode/{external_id}/deactivate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6132,16 +6006,15 @@ function M.create_promo_code_code(project_id, external_id, body, callback, retry
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode/{external_id}/code"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6161,8 +6034,8 @@ function M.get_promocode_codes(project_id, external_id, limit, offset, callback,
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode/{external_id}/code"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -6170,9 +6043,8 @@ function M.get_promocode_codes(project_id, external_id, limit, offset, callback,
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6192,16 +6064,15 @@ function M.generate_promo_code_codes(project_id, external_id, body, callback, re
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/promocode/{external_id}/code/generate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6222,15 +6093,14 @@ function M.create_item_promotion(project_id, body, callback, retry_policy, cance
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/item"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6251,7 +6121,7 @@ function M.get_item_promotion_list(project_id, limit, offset, callback, retry_po
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/item"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -6259,9 +6129,8 @@ function M.get_item_promotion_list(project_id, limit, offset, callback, retry_po
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6288,16 +6157,15 @@ function M.update_item_promotion(project_id, promotion_id, body, callback, retry
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/{promotion_id}/item"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6318,16 +6186,15 @@ function M.get_item_promotion(project_id, promotion_id, callback, retry_policy, 
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/{promotion_id}/item"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6349,16 +6216,15 @@ function M.delete_item_promotion(project_id, promotion_id, callback, retry_polic
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/{promotion_id}/item"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6379,15 +6245,14 @@ function M.create_bonus_promotion(project_id, body, callback, retry_policy, canc
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/bonus"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6408,7 +6273,7 @@ function M.get_bonus_promotion_list(project_id, limit, offset, callback, retry_p
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/bonus"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -6416,9 +6281,8 @@ function M.get_bonus_promotion_list(project_id, limit, offset, callback, retry_p
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6445,16 +6309,15 @@ function M.update_bonus_promotion(project_id, promotion_id, body, callback, retr
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/{promotion_id}/bonus"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6475,16 +6338,15 @@ function M.get_bonus_promotion(project_id, promotion_id, callback, retry_policy,
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/{promotion_id}/bonus"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6506,16 +6368,15 @@ function M.delete_bonus_promotion(project_id, promotion_id, callback, retry_poli
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/promotion/{promotion_id}/bonus"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6533,16 +6394,15 @@ function M.verify_promotion_code(project_id, code, callback, retry_policy, cance
     assert(code)
 
     local url_path = "/v2/project/{project_id}/promotion/code/{code}/verify"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{code}", uri.encode(code))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{code}", uri.encode(tostring(code)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6565,7 +6425,7 @@ function M.admin_get_virtual_items_list(project_id, limit, offset, promo_code, c
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_items"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -6574,9 +6434,8 @@ function M.admin_get_virtual_items_list(project_id, limit, offset, promo_code, c
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6594,15 +6453,14 @@ function M.admin_create_virtual_item(project_id, body, callback, retry_policy, c
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_items"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6627,8 +6485,8 @@ function M.admin_get_virtual_items_list_by_group_external_id(project_id, externa
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_items/group/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -6637,9 +6495,8 @@ function M.admin_get_virtual_items_list_by_group_external_id(project_id, externa
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6664,8 +6521,8 @@ function M.admin_get_virtual_items_list_by_group_id(project_id, group_id, limit,
     assert(group_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_items/group/id/{group_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{group_id}", uri.encode(group_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{group_id}", uri.encode(tostring(group_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -6674,9 +6531,8 @@ function M.admin_get_virtual_items_list_by_group_id(project_id, group_id, limit,
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6699,17 +6555,16 @@ function M.admin_get_virtual_item(project_id, item_sku, promo_code, callback, re
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_items/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6729,16 +6584,15 @@ function M.admin_update_virtual_item(project_id, item_sku, body, callback, retry
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_items/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6756,16 +6610,15 @@ function M.admin_delete_virtual_item(project_id, item_sku, callback, retry_polic
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_items/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6788,7 +6641,7 @@ function M.admin_get_virtual_currencies_list(project_id, limit, offset, promo_co
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -6797,9 +6650,8 @@ function M.admin_get_virtual_currencies_list(project_id, limit, offset, promo_co
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6817,15 +6669,14 @@ function M.admin_create_virtual_currency(project_id, body, callback, retry_polic
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6848,17 +6699,16 @@ function M.admin_get_virtual_currency(project_id, virtual_currency_sku, promo_co
     assert(virtual_currency_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency/sku/{virtual_currency_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(virtual_currency_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(tostring(virtual_currency_sku)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6878,16 +6728,15 @@ function M.admin_update_virtual_currency(project_id, virtual_currency_sku, body,
     assert(virtual_currency_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency/sku/{virtual_currency_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(virtual_currency_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(tostring(virtual_currency_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6905,16 +6754,15 @@ function M.admin_delete_virtual_currency(project_id, virtual_currency_sku, callb
     assert(virtual_currency_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency/sku/{virtual_currency_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(virtual_currency_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(tostring(virtual_currency_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6937,7 +6785,7 @@ function M.admin_get_virtual_currency_packages_list(project_id, limit, offset, p
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency/package"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -6946,9 +6794,8 @@ function M.admin_get_virtual_currency_packages_list(project_id, limit, offset, p
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6966,15 +6813,14 @@ function M.admin_create_virtual_currency_package(project_id, body, callback, ret
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency/package"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -6995,17 +6841,16 @@ function M.admin_update_virtual_currency_package(project_id, item_sku, promo_cod
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency/package/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7023,16 +6868,15 @@ function M.admin_delete_virtual_currency_package(project_id, item_sku, callback,
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency/package/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7054,16 +6898,15 @@ function M.admin_get_virtual_currency_package(project_id, item_sku, callback, re
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/virtual_currency/package/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7094,7 +6937,7 @@ function M.get_virtual_items(project_id, limit, offset, locale, additional_field
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/virtual_items"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -7107,9 +6950,8 @@ function M.get_virtual_items(project_id, limit, offset, locale, additional_field
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7133,8 +6975,8 @@ function M.get_virtual_items_sku(project_id, item_sku, locale, country, show_ina
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/items/virtual_items/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
     query_params["locale"] = locale
@@ -7143,9 +6985,8 @@ function M.get_virtual_items_sku(project_id, item_sku, locale, country, show_ina
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7171,7 +7012,7 @@ function M.get_all_virtual_items(project_id, locale, promo_code, callback, retry
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/virtual_items/all"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["locale"] = locale
@@ -7179,9 +7020,8 @@ function M.get_all_virtual_items(project_id, locale, promo_code, callback, retry
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7212,7 +7052,7 @@ function M.get_virtual_currency(project_id, limit, offset, locale, additional_fi
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/virtual_currency"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -7225,9 +7065,8 @@ function M.get_virtual_currency(project_id, limit, offset, locale, additional_fi
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7251,8 +7090,8 @@ function M.get_virtual_currency_sku(project_id, virtual_currency_sku, locale, co
     assert(virtual_currency_sku)
 
     local url_path = "/v2/project/{project_id}/items/virtual_currency/sku/{virtual_currency_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(virtual_currency_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(tostring(virtual_currency_sku)))
 
     local query_params = {}
     query_params["locale"] = locale
@@ -7261,9 +7100,8 @@ function M.get_virtual_currency_sku(project_id, virtual_currency_sku, locale, co
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7294,7 +7132,7 @@ function M.get_virtual_currency_package(project_id, limit, offset, locale, addit
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/virtual_currency/package"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -7307,9 +7145,8 @@ function M.get_virtual_currency_package(project_id, limit, offset, locale, addit
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7333,8 +7170,8 @@ function M.get_virtual_currency_package_sku(project_id, virtual_currency_package
     assert(virtual_currency_package_sku)
 
     local url_path = "/v2/project/{project_id}/items/virtual_currency/package/sku/{virtual_currency_package_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{virtual_currency_package_sku}", uri.encode(virtual_currency_package_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{virtual_currency_package_sku}", uri.encode(tostring(virtual_currency_package_sku)))
 
     local query_params = {}
     query_params["locale"] = locale
@@ -7343,9 +7180,8 @@ function M.get_virtual_currency_package_sku(project_id, virtual_currency_package
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7377,8 +7213,8 @@ function M.get_virtual_items_group(project_id, external_id, limit, offset, local
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/items/virtual_items/group/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -7391,9 +7227,8 @@ function M.get_virtual_items_group(project_id, external_id, limit, offset, local
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7410,16 +7245,15 @@ function M.get_item_groups(project_id, promo_code, callback, retry_policy, cance
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items/groups"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7442,18 +7276,17 @@ function M.create_order_with_item_for_virtual_currency(project_id, item_sku, vir
     assert(virtual_currency_sku)
 
     local url_path = "/v2/project/{project_id}/payment/item/{item_sku}/virtual/{virtual_currency_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
-    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(virtual_currency_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
+    url_path = url_path:gsub("{virtual_currency_sku}", uri.encode(tostring(virtual_currency_sku)))
 
     local query_params = {}
     query_params["platform"] = platform
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7484,7 +7317,7 @@ function M.get_sellable_items(project_id, limit, offset, locale, additional_fiel
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/items"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -7497,9 +7330,8 @@ function M.get_sellable_items(project_id, limit, offset, locale, additional_fiel
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7522,8 +7354,8 @@ function M.get_sellable_item_by_id(project_id, item_id, promo_code, show_inactiv
     assert(item_id)
 
     local url_path = "/v2/project/{project_id}/items/id/{item_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_id}", uri.encode(item_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_id}", uri.encode(tostring(item_id)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
@@ -7531,9 +7363,8 @@ function M.get_sellable_item_by_id(project_id, item_id, promo_code, show_inactiv
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7556,8 +7387,8 @@ function M.get_sellable_item_by_sku(project_id, sku, promo_code, show_inactive_t
     assert(sku)
 
     local url_path = "/v2/project/{project_id}/items/sku/{sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{sku}", uri.encode(sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{sku}", uri.encode(tostring(sku)))
 
     local query_params = {}
     query_params["promo_code"] = promo_code
@@ -7565,9 +7396,8 @@ function M.get_sellable_item_by_sku(project_id, sku, promo_code, show_inactive_t
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7600,8 +7430,8 @@ function M.get_sellable_items_group(project_id, external_id, limit, offset, loca
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/items/group/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -7614,9 +7444,8 @@ function M.get_sellable_items_group(project_id, external_id, limit, offset, loca
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7634,15 +7463,14 @@ function M.admin_get_regions(project_id, callback, retry_policy, cancellation_to
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/region"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7662,15 +7490,14 @@ function M.admin_create_region(project_id, body, callback, retry_policy, cancell
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/region"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7690,16 +7517,15 @@ function M.admin_get_region(project_id, region_id, callback, retry_policy, cance
     assert(region_id)
 
     local url_path = "/v2/project/{project_id}/admin/region/{region_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{region_id}", uri.encode(region_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{region_id}", uri.encode(tostring(region_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7721,16 +7547,15 @@ function M.admin_update_region(project_id, region_id, body, callback, retry_poli
     assert(region_id)
 
     local url_path = "/v2/project/{project_id}/admin/region/{region_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{region_id}", uri.encode(region_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{region_id}", uri.encode(tostring(region_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7748,16 +7573,15 @@ function M.admin_delete_region(project_id, region_id, callback, retry_policy, ca
     assert(region_id)
 
     local url_path = "/v2/project/{project_id}/admin/region/{region_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{region_id}", uri.encode(region_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{region_id}", uri.encode(tostring(region_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7780,15 +7604,14 @@ function M.reset_all_user_items_limit(project_id, body, callback, retry_policy, 
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/item/all"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7813,16 +7636,15 @@ function M.reset_user_item_limit(project_id, item_sku, body, callback, retry_pol
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}/all"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7847,17 +7669,16 @@ function M.get_user_item_limit(project_id, item_sku, user_external_id, callback,
     assert(user_external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
     query_params["user_external_id"] = user_external_id
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7882,16 +7703,15 @@ function M.add_user_item_limit(project_id, item_sku, body, callback, retry_polic
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7916,16 +7736,15 @@ function M.set_user_item_limit(project_id, item_sku, body, callback, retry_polic
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7950,16 +7769,15 @@ function M.remove_user_item_limit(project_id, item_sku, body, callback, retry_po
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/item/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -7981,15 +7799,14 @@ function M.reset_all_user_promotions_limit(project_id, body, callback, retry_pol
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promotion/all"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8013,16 +7830,15 @@ function M.reset_user_promotion_limit(project_id, promotion_id, body, callback, 
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promotion/id/{promotion_id}/all"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8046,17 +7862,16 @@ function M.get_user_promotion_limit(project_id, promotion_id, user_external_id, 
     assert(user_external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promotion/id/{promotion_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
     query_params["user_external_id"] = user_external_id
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8080,16 +7895,15 @@ function M.add_user_promotion_limit(project_id, promotion_id, body, callback, re
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promotion/id/{promotion_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8113,16 +7927,15 @@ function M.set_user_promotion_limit(project_id, promotion_id, body, callback, re
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promotion/id/{promotion_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8146,16 +7959,15 @@ function M.remove_user_promotion_limit(project_id, promotion_id, body, callback,
     assert(promotion_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promotion/id/{promotion_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{promotion_id}", uri.encode(promotion_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{promotion_id}", uri.encode(tostring(promotion_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8178,17 +7990,16 @@ function M.get_promo_code_user_limit(project_id, external_id, user_external_id, 
     assert(user_external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promocode/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["user_external_id"] = user_external_id
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8211,16 +8022,15 @@ function M.add_promo_code_user_promotion_limit(project_id, external_id, body, ca
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promocode/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8243,16 +8053,15 @@ function M.set_promo_code_user_promotion_limit(project_id, external_id, body, ca
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promocode/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8275,16 +8084,15 @@ function M.remove_promo_code_user_promotion_limit(project_id, external_id, body,
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/promocode/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8307,17 +8115,16 @@ function M.get_coupon_user_limit(project_id, external_id, user_external_id, call
     assert(user_external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/coupon/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["user_external_id"] = user_external_id
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8340,16 +8147,15 @@ function M.add_coupon_user_promotion_limit(project_id, external_id, body, callba
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/coupon/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8372,16 +8178,15 @@ function M.set_coupon_user_promotion_limit(project_id, external_id, body, callba
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/coupon/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8404,16 +8209,15 @@ function M.remove_coupon_user_promotion_limit(project_id, external_id, body, cal
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/user/limit/coupon/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8437,8 +8241,8 @@ function M.get_promo_code_code_limit(project_id, external_id, codes, limit, offs
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/code/limit/promocode/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["codes"] = codes
@@ -8447,9 +8251,8 @@ function M.get_promo_code_code_limit(project_id, external_id, codes, limit, offs
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8473,8 +8276,8 @@ function M.get_coupon_code_limit(project_id, external_id, codes, limit, offset, 
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/code/limit/coupon/external_id/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["codes"] = codes
@@ -8483,9 +8286,8 @@ function M.get_coupon_code_limit(project_id, external_id, codes, limit, offset, 
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8503,7 +8305,7 @@ function M.admin_get_value_points_list(project_id, limit, offset, callback, retr
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/value_points"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -8511,9 +8313,8 @@ function M.admin_get_value_points_list(project_id, limit, offset, callback, retr
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8531,15 +8332,14 @@ function M.admin_create_value_points(project_id, body, callback, retry_policy, c
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/items/value_points"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8557,16 +8357,15 @@ function M.admin_get_value_point(project_id, item_sku, callback, retry_policy, c
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/value_points/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8586,16 +8385,15 @@ function M.admin_update_value_point(project_id, item_sku, body, callback, retry_
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/value_points/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8613,16 +8411,15 @@ function M.admin_delete_value_point(project_id, item_sku, callback, retry_policy
     assert(item_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/value_points/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{item_sku}", uri.encode(item_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8640,16 +8437,15 @@ function M.admin_get_items_value_point_reward(project_id, value_point_sku, callb
     assert(value_point_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/{value_point_sku}/value_points/rewards"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{value_point_sku}", uri.encode(value_point_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{value_point_sku}", uri.encode(tostring(value_point_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8675,16 +8471,15 @@ function M.admin_set_items_value_point_reward(project_id, value_point_sku, body,
     assert(value_point_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/{value_point_sku}/value_points/rewards"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{value_point_sku}", uri.encode(value_point_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{value_point_sku}", uri.encode(tostring(value_point_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8713,16 +8508,15 @@ function M.admin_patch_items_value_point_reward(project_id, value_point_sku, bod
     assert(value_point_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/{value_point_sku}/value_points/rewards"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{value_point_sku}", uri.encode(value_point_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{value_point_sku}", uri.encode(tostring(value_point_sku)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PATCH", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8740,16 +8534,15 @@ function M.admin_delete_items_value_point_reward(project_id, value_point_sku, ca
     assert(value_point_sku)
 
     local url_path = "/v2/project/{project_id}/admin/items/{value_point_sku}/value_points/rewards"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{value_point_sku}", uri.encode(value_point_sku))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{value_point_sku}", uri.encode(tostring(value_point_sku)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8771,7 +8564,7 @@ function M.get_reward_chains_list(project_id, limit, offset, callback, retry_pol
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/user/reward_chain"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -8779,9 +8572,8 @@ function M.get_reward_chains_list(project_id, limit, offset, callback, retry_pol
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8799,16 +8591,15 @@ function M.get_user_reward_chain_balance(project_id, reward_chain_id, callback, 
     assert(reward_chain_id)
 
     local url_path = "/v2/project/{project_id}/user/reward_chain/{reward_chain_id}/balance"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{reward_chain_id}", uri.encode(reward_chain_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{reward_chain_id}", uri.encode(tostring(reward_chain_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8828,17 +8619,16 @@ function M.claim_user_reward_chain_step_reward(project_id, reward_chain_id, step
     assert(step_id)
 
     local url_path = "/v2/project/{project_id}/user/reward_chain/{reward_chain_id}/step/{step_id}/claim"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{reward_chain_id}", uri.encode(reward_chain_id))
-    url_path = url_path:gsub("{step_id}", uri.encode(step_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{reward_chain_id}", uri.encode(tostring(reward_chain_id)))
+    url_path = url_path:gsub("{step_id}", uri.encode(tostring(step_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8856,16 +8646,15 @@ function M.get_user_clan_top_contributors(project_id, reward_chain_id, callback,
     assert(reward_chain_id)
 
     local url_path = "/v2/project/{project_id}/user/clan/contributors/{reward_chain_id}/top"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{reward_chain_id}", uri.encode(reward_chain_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{reward_chain_id}", uri.encode(tostring(reward_chain_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8881,15 +8670,14 @@ function M.user_clan_update(project_id, callback, retry_policy, cancellation_tok
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/user/clan/update"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8912,7 +8700,7 @@ function M.admin_get_reward_chains(project_id, limit, offset, enabled, callback,
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/reward_chain"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -8921,9 +8709,8 @@ function M.admin_get_reward_chains(project_id, limit, offset, enabled, callback,
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8941,15 +8728,14 @@ function M.admin_create_reward_chain(project_id, body, callback, retry_policy, c
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/reward_chain"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8967,16 +8753,15 @@ function M.admin_get_reward_chain(project_id, reward_chain_id, callback, retry_p
     assert(reward_chain_id)
 
     local url_path = "/v2/project/{project_id}/admin/reward_chain/id/{reward_chain_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{reward_chain_id}", uri.encode(reward_chain_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{reward_chain_id}", uri.encode(tostring(reward_chain_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -8996,16 +8781,15 @@ function M.admin_update_reward_chain(project_id, reward_chain_id, body, callback
     assert(reward_chain_id)
 
     local url_path = "/v2/project/{project_id}/admin/reward_chain/id/{reward_chain_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{reward_chain_id}", uri.encode(reward_chain_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{reward_chain_id}", uri.encode(tostring(reward_chain_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9023,16 +8807,15 @@ function M.admin_delete_reward_chain(project_id, reward_chain_id, callback, retr
     assert(reward_chain_id)
 
     local url_path = "/v2/project/{project_id}/admin/reward_chain/id/{reward_chain_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{reward_chain_id}", uri.encode(reward_chain_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{reward_chain_id}", uri.encode(tostring(reward_chain_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9050,16 +8833,15 @@ function M.admin_toggle_reward_chain(project_id, reward_chain_id, callback, retr
     assert(reward_chain_id)
 
     local url_path = "/v2/project/{project_id}/admin/reward_chain/id/{reward_chain_id}/toggle"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{reward_chain_id}", uri.encode(reward_chain_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{reward_chain_id}", uri.encode(tostring(reward_chain_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9084,16 +8866,15 @@ function M.admin_reset_reward_chain(project_id, reward_chain_id, callback, retry
     assert(reward_chain_id)
 
     local url_path = "/v2/project/{project_id}/admin/reward_chain/id/{reward_chain_id}/reset"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{reward_chain_id}", uri.encode(reward_chain_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{reward_chain_id}", uri.encode(tostring(reward_chain_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9111,15 +8892,14 @@ function M.admin_create_unique_catalog_offer(project_id, body, callback, retry_p
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9137,7 +8917,7 @@ function M.get_unique_catalog_offers(project_id, limit, offset, callback, retry_
     assert(project_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -9145,9 +8925,8 @@ function M.get_unique_catalog_offers(project_id, limit, offset, callback, retry_
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9167,16 +8946,15 @@ function M.update_unique_catalog_offer_promotion(project_id, external_id, body, 
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9194,16 +8972,15 @@ function M.get_unique_catalog_offer(project_id, external_id, callback, retry_pol
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9225,16 +9002,15 @@ function M.delete_unique_catalog_offer_promotion(project_id, external_id, callba
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer/{external_id}"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9255,16 +9031,15 @@ function M.activate_unique_catalog_offer(project_id, external_id, callback, retr
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer/{external_id}/activate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9285,16 +9060,15 @@ function M.deactivate_unique_catalog_offer(project_id, external_id, callback, re
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer/{external_id}/deactivate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9314,16 +9088,15 @@ function M.create_unique_catalog_offer_code(project_id, external_id, body, callb
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer/{external_id}/code"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9343,8 +9116,8 @@ function M.get_unique_catalog_offer_codes(project_id, external_id, limit, offset
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer/{external_id}/code"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
     query_params["limit"] = limit
@@ -9352,9 +9125,8 @@ function M.get_unique_catalog_offer_codes(project_id, external_id, limit, offset
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9374,16 +9146,15 @@ function M.generate_unique_catalog_offer_codes(project_id, external_id, body, ca
     assert(external_id)
 
     local url_path = "/v2/project/{project_id}/admin/unique_catalog_offer/{external_id}/code/generate"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
-    url_path = url_path:gsub("{external_id}", uri.encode(external_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
+    url_path = url_path:gsub("{external_id}", uri.encode(tostring(external_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9401,15 +9172,14 @@ function M.import_items_from_external_file(project_id, body, callback, retry_pol
     assert(project_id)
 
     local url_path = "/v1/projects/{project_id}/import/from_external_file"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = body
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
@@ -9425,15 +9195,14 @@ function M.get_items_import_status(project_id, callback, retry_policy, cancellat
     assert(project_id)
 
     local url_path = "/v1/admin/projects/{project_id}/connectors/import_items/import/status"
-    url_path = url_path:gsub("{project_id}", uri.encode(project_id))
+    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
 
     local query_params = {}
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 
