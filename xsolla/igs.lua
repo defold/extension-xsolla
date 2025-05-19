@@ -52,13 +52,22 @@ end
 -- @param cancellation_token Optional cancellation token to cancel the running code
 function M.sync(fn, cancellation_token)
     assert(fn)
-    local co = nil
-    co = coroutine.create(function()
-        cancellation_tokens[co] = cancellation_token
-        fn()
-        cancellation_tokens[co] = nil
-    end)
-    local ok, err = coroutine.resume(co)
+    local ok, err
+    local co = coroutine.running()
+    if co then
+        ok, err = pcall(function()
+            cancellation_tokens[co] = cancellation_token
+            fn()
+            cancellation_tokens[co] = nil
+        end)
+    else
+        co = coroutine.create(function()
+            cancellation_tokens[co] = cancellation_token
+            fn()
+            cancellation_tokens[co] = nil
+        end)
+        ok, err = coroutine.resume(co)
+    end
     if not ok then
         log(err)
         cancellation_tokens[co] = nil
