@@ -17,7 +17,7 @@ local config = {
     username = nil,
     password = nil,
     timeout = 3,    -- seconds
-    retry_policy = retries.exponential(5, 0.5),
+    retry_policy = retries.fixed(5, 0.5),
 }
 
 -- cancellation tokens associated with a coroutine
