@@ -19,7 +19,7 @@ local config = {
     username = nil,
     password = nil,
     timeout = 3,    -- seconds
-    retry_policy = retries.exponential(5, 0.5),
+    retry_policy = retries.fixed(5, 0.5),
 }
 
 -- cancellation tokens associated with a coroutine
@@ -54,13 +54,22 @@ end
 -- @param cancellation_token Optional cancellation token to cancel the running code
 function M.sync(fn, cancellation_token)
     assert(fn)
-    local co = nil
-    co = coroutine.create(function()
-        cancellation_tokens[co] = cancellation_token
-        fn()
-        cancellation_tokens[co] = nil
-    end)
-    local ok, err = coroutine.resume(co)
+    local ok, err
+    local co = coroutine.running()
+    if co then
+        ok, err = pcall(function()
+            cancellation_tokens[co] = cancellation_token
+            fn()
+            cancellation_tokens[co] = nil
+        end)
+    else
+        co = coroutine.create(function()
+            cancellation_tokens[co] = cancellation_token
+            fn()
+            cancellation_tokens[co] = nil
+        end)
+        ok, err = coroutine.resume(co)
+    end
     if not ok then
         log(err)
         cancellation_tokens[co] = nil
@@ -73,13 +82,17 @@ local function http(callback, url_path, query_params, method, post_data, retry_p
         log(url_path, "with callback")
         net.http(config, url_path, query_params, method, post_data, retry_policy, cancellation_token, function(result)
             if not cancellation_token or not cancellation_token.cancelled then
-                callback(handler_fn(result))
+                if result.error then
+                    callback(handler_fn(false, result))
+                else
+                    callback(handler_fn(result))
+                end
             end
         end)
     else
         log(url_path, "with coroutine")
         local co = coroutine.running()
-        assert(co, "You must be running this from withing a coroutine")
+        assert(co, "You must be running this from within a coroutine")
 
         -- get cancellation token associated with this coroutine
         cancellation_token = cancellation_tokens[co]
@@ -94,7 +107,11 @@ local function http(callback, url_path, query_params, method, post_data, retry_p
                     cancellation_tokens[co] = nil
                     return
                 end
-                done(handler_fn(result))
+                if result.error then
+                    done(handler_fn(false, result))
+                else
+                    done(handler_fn(result))
+                end
             end)
         end)
     end
@@ -171,7 +188,7 @@ function M.{{operationId}}({{#parameters}}{{name}}, {{/parameters}}{{#requestBod
     local url_path = "{{ path }}"
     {{#parameters}}
     {{#inpath}}
-    url_path = url_path:gsub("%7B{{name}}%7D", uri.encode({{name}}))
+    url_path = url_path:gsub("%7B{{name}}%7D", uri.encode(tostring({{name}})))
     {{/inpath}}
     {{/parameters}}
 
@@ -184,9 +201,8 @@ function M.{{operationId}}({{#parameters}}{{name}}, {{/parameters}}{{#requestBod
 
     local post_data = {{#requestBody}}body{{/requestBody}}{{^requestBody}}nil{{/requestBody}}
 
-    return http(callback, url_path, query_params, "{{method}}", post_data, retry_policy, cancellation_token, function(result)
-        -- TODO
-        return result
+    return http(callback, url_path, query_params, "{{method}}", post_data, retry_policy, cancellation_token, function(result, err)
+        return result, err
     end)
 end
 {{/paths}}
