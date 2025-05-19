@@ -51,7 +51,7 @@ make_http_request = function(url, method, callback, headers, post_data, options,
 			callback(nil)
 			return
 		end
-		log(result.response)
+		log(result.status, result.response)
 		local ok, decoded = pcall(json.decode, result.response)
 		-- return result if everything is ok
 		if ok and result.status >= 200 and result.status <= 299 then
