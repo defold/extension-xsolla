@@ -73,9 +73,10 @@ local function get_sellable_items(self)
 		local country = "US"
 		local promo_code = "WINTER2021"
 		local show_inactive_time_limited_items=1
-		local items = igs.get_sellable_items(PROJECT_ID, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items)
+		local items, err = igs.get_sellable_items(PROJECT_ID, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items)
 		hide_spinner()
 		if not items then
+			pprint(err)
 			return
 		end
 		items = items["items"]
