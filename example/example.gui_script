@@ -3,7 +3,7 @@ local log = require("xsolla.util.log")
 log.print()
 
 local PROJECT_ID = "281706"
-local DEBUG_BEARER_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI"
+local DEBUG_BEARER_TOKEN = nil
 
 local function hide_toast(self, immediate)
 	local toast = gui.get_node("toast")
@@ -181,6 +181,11 @@ function init(self)
 
 	hide_toast(self, true)
 
+	if not DEBUG_BEARER_TOKEN then
+		print("ERROR: You must set a bearer token")
+		sys.exit(1)
+		return
+	end
 	igs.set_bearer_token(DEBUG_BEARER_TOKEN)
 	get_sellable_items(self)
 end
