@@ -115,6 +115,7 @@ local function get_sellable_items(self)
 		hide_spinner()
 		if not items then
 			pprint(err)
+			show_toast(self, err.message)
 			show_buttons(self)
 			return
 		end
@@ -146,6 +147,7 @@ local function buy_item(self, item)
 		local order, err = create_order(self, item)
 		if not order then
 			pprint(err)
+			show_toast(self, err.message)
 			get_sellable_items(self)
 			return
 		end
