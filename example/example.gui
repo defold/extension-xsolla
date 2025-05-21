@@ -196,5 +196,42 @@ nodes {
   inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
 }
+nodes {
+  position {
+    y: -257.0
+  }
+  size {
+    x: 650.0
+    y: 45.0
+  }
+  type: TYPE_BOX
+  texture: "ui/grey_panel"
+  id: "toast"
+  parent: "root"
+  inherit_alpha: true
+  slice9 {
+    x: 16.0
+    y: 16.0
+    z: 16.0
+    w: 16.0
+  }
+}
+nodes {
+  size {
+    x: 600.0
+    y: 40.0
+  }
+  color {
+    x: 0.102
+    y: 0.102
+    z: 0.102
+  }
+  type: TYPE_TEXT
+  text: "<text>"
+  font: "text"
+  id: "toast_text"
+  parent: "toast"
+  inherit_alpha: true
+}
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT

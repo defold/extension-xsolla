@@ -52,20 +52,23 @@ end
 -- Run code within a coroutine
 -- @param fn The code to run
 -- @param cancellation_token Optional cancellation token to cancel the running code
+-- @return result or false if an error occurred
+-- @return error or nil if no error occurred
 function M.sync(fn, cancellation_token)
     assert(fn)
+    local result
     local ok, err
     local co = coroutine.running()
     if co then
         ok, err = pcall(function()
             cancellation_tokens[co] = cancellation_token
-            fn()
+            result = fn()
             cancellation_tokens[co] = nil
         end)
     else
         co = coroutine.create(function()
             cancellation_tokens[co] = cancellation_token
-            fn()
+            result = fn()
             cancellation_tokens[co] = nil
         end)
         ok, err = coroutine.resume(co)
@@ -73,7 +76,9 @@ function M.sync(fn, cancellation_token)
     if not ok then
         log(err)
         cancellation_tokens[co] = nil
+        result = false
     end
+    return result, err
 end
 
 -- http request helper used to reduce code duplication in all API functions below
