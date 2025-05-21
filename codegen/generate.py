@@ -143,11 +143,43 @@ def expand(v, api):
     elif v["type"] == "object":
         v["isobject"] = True
         expand_object(v, api)
+        if v.get("properties"):
+            v["hasproperties"] = True
     elif v["type"] == "array":
         v["isarray"] = True
         expand_array(v, api)
     elif not is_primitive_type(v["type"]):
         error("Unable to expand", v["type"])
+
+def property_to_example(prop, api):
+    example = None
+    if prop["type"] == "string":
+        example = prop.get("example", prop.get("description", ""))
+    elif prop["type"] == "boolean":
+        example = prop.get("example", True)
+    elif prop["type"] == "number":
+        example = prop.get("example", 123.456)
+    elif prop["type"] == "integer":
+        example = prop.get("example", 123)
+    elif prop["type"] == "oneof":
+        example = property_to_example(prop["oneOf"][0], api)
+    elif prop["type"] == "array":
+        example = []
+        example.append(property_to_example(prop["items"], api))
+    elif prop["type"] == "object":
+        example = {}
+        properties = prop.get("properties", {})
+        if isinstance(properties, list):
+            for p in properties:
+                example[p["id"]] = property_to_example(p, api)
+        else:
+            for prop_id in properties:
+                p = prop["properties"][prop_id]
+                example[prop_id] = property_to_example(p, api)
+    else:
+        print("Unknown type", prop["type"])
+        sys.exit(4)
+    return example
 
 
 def dict_to_array(d):
@@ -196,46 +228,25 @@ def process_paths(api):
             parameter["name"] = parameter["name"].replace("[]", "")
             parameter["name"] = parameter["name"].replace("-", "_")
 
-    # expand requestBody
+    # expand requestBody and create example
     for data in api["paths"]:
         if "requestBody" not in data: continue
         expand_ref(data["requestBody"], api)
-
-
-def process_request_bodies(api):
-    print("processing request bodies")
-    request_bodies = api["components"]["requestBodies"]
-    api["components"]["requestBodies"] = []
-    for request_body in request_bodies:
-        data = request_bodies[request_body]
-        data["id"] = request_body.replace("-", "_").lower()
-        data["name"] = request_body
-        print("  %s (%s)" % (data["id"], data["name"]))
-        api["components"]["requestBodies"].append(data)
-        if "application/json" in data["content"]:
-            expand_ref(data["content"]["application/json"]["schema"], api)
-            if "properties" in data["content"]["application/json"]["schema"]:
-                properties = data["content"]["application/json"]["schema"]["properties"]
-                data["content"]["application/json"]["schema"]["properties"] = []
-                for prop_id in properties:
-                    prop = properties[prop_id]
-                    prop["id"] = prop_id
-                    expand(prop, api)
-                    if "description" in prop:
-                        prop["description"] = cleanstring_multiline(prop["description"])
-                    data["content"]["application/json"]["schema"]["properties"].append(prop)
-            elif "oneOf" in data["content"]["application/json"]["schema"]:
-                data["content"]["application/json"]["schema"]["oneof"] = True
-            elif "allOf" in data["content"]["application/json"]["schema"]:
-                data["content"]["application/json"]["schema"]["allof"] = True
-            data["schema"] = data["content"]["application/json"]["schema"]
-            if "example" in data["content"]["application/json"]:
-                example = tolua(data["content"]["application/json"]["example"])
-                data["example"] = example
+        schema = data["requestBody"]["content"]["application/json"]["schema"]
+        if "properties" in schema:
+            properties = schema["properties"]
+            for prop_id in schema["properties"]:
+                expand(schema["properties"][prop_id], api)
+        if "example" not in schema:
+            schema["example"] = property_to_example(schema, api)
+            schema["example"] = json.dumps(schema["example"], indent=2)
+        data["requestBodyExample"] = schema["example"]
 
 api = load_api("openapi.json")
 
 process_paths(api)
-process_request_bodies(api)
+
+# with open("apidump.json", 'w') as f:
+#     f.write(json.dumps(api, indent = 2))
 
 render(api, "api_lua.mtl", "../xsolla/igs.lua")

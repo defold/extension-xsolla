@@ -122,49 +122,6 @@ local function http(callback, url_path, query_params, method, post_data, retry_p
     end
 end
 
-{{#components}}
-{{#requestBodies}}
-
---- Create {{id}} data structure
--- @param t Table with properties.{{#content}}{{#application/json}}{{#schema}}{{^oneof}} Acceptable table keys:{{/oneof}}{{/schema}}{{/application/json}}{{/content}}
-{{#schema}}
-{{#properties}}
---   * {{id}} - [{{type}}] {{{description}}}
-{{#array}}
-{{#items}}
-{{#object}}
-{{.}}
-{{/object}}
-{{/items}}
-{{/array}}
-{{/properties}}
-{{/schema}}
--- @example
-{{{example}}}
-function M.body_{{id}}(t)
-    assert(t)
-{{#schema}}
-{{#required}}
-    assert(t.{{.}})
-{{/required}}
-{{/schema}}
-{{#schema}}
-    {{#oneof}}
-    return json.encode(t)
-    {{/oneof}}
-    {{^oneof}}
-    return json.encode({
-        {{#properties}}
-        ["{{id}}"] = t.{{id}},
-        {{/properties}}
-    })
-    {{/oneof}}
-{{/schema}}
-end
-
-{{/requestBodies}}
-{{/components}}
-
 {{#paths}}
 
 --- {{summary}}
@@ -175,11 +132,17 @@ end
 -- @param {{name}} {{#required}}(REQUIRED) {{/required}}{{description}}
 {{/parameters}}
 {{#requestBody}}
--- @param body Create using body_{{id}}()
+-- @param body
 {{/requestBody}}
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+{{#requestBodyExample}}
+-- @example Request body example
+--[[
+{{{requestBodyExample}}}
+]]--
+{{/requestBodyExample}}
 function M.{{operationId}}({{#parameters}}{{name}}, {{/parameters}}{{#requestBody}}body, {{/requestBody}}callback, retry_policy, cancellation_token)
     {{#requestBody}}
     assert(body)
