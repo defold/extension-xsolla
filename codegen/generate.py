@@ -168,6 +168,8 @@ def process_paths(api):
     for path in paths:
         for method in paths[path]:
             data = paths[path][method]
+            if data.get("x-admin") or data.get("x-server"):
+                continue
             data["method"] = method.upper()
             data["path"] = path
             data["description"] = cleanstring_multiline(data["description"])
