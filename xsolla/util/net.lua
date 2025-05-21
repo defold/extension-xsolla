@@ -65,7 +65,7 @@ make_http_request = function(url, method, callback, headers, post_data, options,
 			if not ok then
 				result.response = { error = true, message = "Unable to decode response" }
 			else
-				result.response = { error = decoded.error or true, message = decoded.message, code = decoded.code }
+				result.response = { error = true, message = decoded.errorMessage, code = decoded.errorCode }
 			end
 			callback(result.response)
 			return
@@ -106,8 +106,9 @@ function M.http(config, url_path, query_params, method, post_data, retry_policy,
 	local url = ("%s%s%s"):format(config.http_uri, url_path, query_string)
 
 	local headers = {}
-	--headers["Accept"] = "application/json"
-	--headers["Content-Type"] = "application/json"
+	if post_data then
+		headers["Content-Type"] = "application/json"
+	end
 	if config.bearer_token then
 		headers["Authorization"] = ("Bearer %s"):format(config.bearer_token)
 	elseif config.username then
