@@ -101,6 +101,8 @@
 {{#requestBody}}
     examples:
       - desc: |-
+              ```lua
               {{requestBodyYamlExample}}
+              ```
 {{/requestBody}}
 {{/paths}}

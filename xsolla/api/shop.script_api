@@ -286,6 +286,7 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 items = 
                 {
@@ -295,6 +296,7 @@
                   },
                 },
               }
+              ```
 
   - name: cart_fill_by_id
     type: function
@@ -319,6 +321,7 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 items = 
                 {
@@ -328,6 +331,7 @@
                   },
                 },
               }
+              ```
 
   - name: put_item_by_cart_id
     type: function
@@ -355,9 +359,11 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 quantity = 123.456,
               }
+              ```
 
   - name: delete_item_by_cart_id
     type: function
@@ -405,9 +411,11 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 quantity = 123.456,
               }
+              ```
 
   - name: delete_item
     type: function
@@ -452,6 +460,7 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
                 locale = &quot;Response language.&quot;,
@@ -525,6 +534,7 @@
                 {
                 },
               }
+              ```
 
   - name: create_order
     type: function
@@ -546,6 +556,7 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
                 locale = &quot;Response language.&quot;,
@@ -619,6 +630,7 @@
                 {
                 },
               }
+              ```
 
   - name: create_order_with_item
     type: function
@@ -643,6 +655,7 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
                 locale = &quot;Response language.&quot;,
@@ -718,6 +731,7 @@
                 {
                 },
               }
+              ```
 
   - name: create_free_order
     type: function
@@ -739,6 +753,7 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
                 locale = &quot;Response language.&quot;,
@@ -812,6 +827,7 @@
                 {
                 },
               }
+              ```
 
   - name: create_free_order_by_cart_id
     type: function
@@ -836,6 +852,7 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
                 locale = &quot;Response language.&quot;,
@@ -909,6 +926,7 @@
                 {
                 },
               }
+              ```
 
   - name: create_free_order_with_item
     type: function
@@ -933,6 +951,7 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
                 locale = &quot;Response language.&quot;,
@@ -1008,6 +1027,7 @@
                 {
                 },
               }
+              ```
 
   - name: get_order
     type: function
@@ -1302,10 +1322,12 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 code = &quot;AAAA-BBBB-CCCC-DDDD&quot;,
                 sandbox = false,
               }
+              ```
 
   - name: redeem_coupon
     type: function
@@ -1327,12 +1349,14 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 coupon_code = &quot;WINTER2021&quot;,
                 selected_unit_items = 
                 {
                 },
               }
+              ```
 
   - name: get_coupon_rewards_by_code
     type: function
@@ -1374,6 +1398,7 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 coupon_code = &quot;SUMMER2021&quot;,
                 cart = 
@@ -1384,6 +1409,7 @@
                 {
                 },
               }
+              ```
 
   - name: remove_cart_promo_code
     type: function
@@ -1405,12 +1431,14 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 cart = 
                 {
                   id = &quot;Cart ID.&quot;,
                 },
               }
+              ```
 
   - name: get_promo_code_rewards_by_code
     type: function
@@ -1766,11 +1794,13 @@
         desc: Optional cancellation token
     examples:
       - desc: |-
+              ```lua
               {
                 custom_parameters = 
                 {
                 },
               }
+              ```
 
   - name: get_sellable_items
     type: function
