@@ -275,4 +275,4 @@ process_paths(api)
 # with open("apidump.json", 'w') as f:
 #     f.write(json.dumps(api, indent = 2))
 
-render(api, "api_lua.mtl", "../xsolla/igs.lua")
+render(api, "api_lua.mtl", "../xsolla/shop.lua")

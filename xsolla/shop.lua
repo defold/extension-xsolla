@@ -173,7 +173,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -262,7 +262,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -1598,7 +1598,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -1648,7 +1648,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -1695,7 +1695,7 @@ end
 -- @param item_sku (REQUIRED) Item SKU.
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -1740,7 +1740,7 @@ end
 -- @param item_sku (REQUIRED) Item SKU.
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -1790,7 +1790,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -1927,263 +1927,6 @@ function M.redeem_game_pin_code(project_id, body, callback, retry_policy, cancel
     headers["Authorization"] = authorization.bearer
 
     return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
-        return result, err
-    end)
-end
-
---- Get physical items list
--- Gets a physical items list for building a catalog.
--- 
--- Attention
--- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
--- Note
--- In general, the use of catalog of items is available without authorization.
--- Only authorized users can get a personalized catalog.
--- @path /v2/project/{project_id}/items/physical_good
--- @name get_physical_goods_list
--- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param limit Limit for the number of elements on the page.
--- @param offset Number of the element from which the list is generated (the count starts from 0).
--- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
--- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
--- @param callback
--- @param retry_policy
--- @param cancellation_token
--- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
--- 
--- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
-function M.get_physical_goods_list(project_id, limit, offset, locale, additional_fields, country, callback, retry_policy, cancellation_token)
-    assert(project_id)
-
-    local url_path = "/v2/project/{project_id}/items/physical_good"
-    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
-
-    local query_params = {}
-    query_params["limit"] = limit
-    query_params["offset"] = offset
-    query_params["locale"] = locale
-    query_params["additional_fields"] = additional_fields
-    query_params["country"] = country
-
-    local post_data = nil
-
-    local headers = {}
-    headers["Authorization"] = authorization.bearer
-
-    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
-        return result, err
-    end)
-end
-
---- Update physical item
--- Updates a physical item.
--- 
--- Aliases for this endpoint:
--- * /v2/project/{project_id}/admin/items/physical_good/id/{item_id}
--- @path /v2/project/{project_id}/admin/items/physical_good/sku/{item_sku}
--- @name admin_update_physical_item_by_sku
--- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
--- @param item_sku (REQUIRED) Item SKU.
--- @param body
--- @param callback
--- @param retry_policy
--- @param cancellation_token
--- @note Xsolla API uses basic access authentication. All requests to API must
--- contain the `Authorization: Basic `
--- header, where `your_authorization_basic_key` is the `project_id:api_key`
--- pair encoded according to the Base64 standard.
--- 
--- You can use `merchant_id` instead of `project_id` if you need. It doesn&#x27;t affect functionality.
--- 
--- Go to [Publisher Account](https://publisher.xsolla.com/) to find values of the parameters:
--- 
--- * `merchant_id` is shown:
---   * In the **Company settings &gt; Company** section
---   * In the URL in the browser address bar on any Publisher Account page. The URL has the following format: `https://publisher.xsolla.com/`.
--- * `api_key` is shown in Publisher Account only once when it is created and must be stored on your side. You can create a new key in the following section:
---   * **Company settings &gt; API keys**
---   * **Project settings &gt; API keys**
--- * `project_id` is shown:
---   * In Publisher Account next to the name of the project.
---   * In the URL in the browser address bar when working on project in Publisher Account. The URL has the following format: `https://publisher.xsolla.com//projects/`.
--- 
--- For more information about working with API keys, see the [API reference](https://developers.xsolla.com/api/getting-started/#api_keys_overview).
--- @example Request body example
--- {
---   sku = "",
---   name = 
---   {
---     en = "Item's name.",
---     ar = nil,
---     bg = nil,
---     cn = nil,
---     cs = nil,
---     de = "Name des Artikels.",
---     es = "Nombre del artículo.",
---     fr = "Nom de l'élément.",
---     he = nil,
---     it = "Nome dell'elemento.",
---     ja = "買い物の名前。",
---     ko = nil,
---     pl = nil,
---     pt = nil,
---     ro = nil,
---     ru = nil,
---     th = nil,
---     tr = nil,
---     tw = nil,
---     vi = nil,
---   },
---   description = 
---   {
---     en = "Item's description.",
---     ar = nil,
---     bg = nil,
---     cn = nil,
---     cs = nil,
---     de = "Artikelbeschreibung.",
---     es = "Descripción del artículo.",
---     fr = "Description de l'article.",
---     he = nil,
---     it = "Descrizione dell'oggetto.",
---     ja = "買い物の説明。",
---     ko = nil,
---     pl = nil,
---     pt = nil,
---     ro = nil,
---     ru = nil,
---     th = nil,
---     tr = nil,
---     tw = nil,
---     vi = nil,
---   },
---   long_description = 
---   {
---     en = "Long description of item.",
---     ar = nil,
---     bg = nil,
---     cn = nil,
---     cs = nil,
---     de = "Lange Beschreibung des Artikels.",
---     es = "Descripción larga del artículo.",
---     fr = "Description longue de l'article.",
---     he = nil,
---     it = "Descrizione lunga dell'articolo.",
---     ja = "アイテムの長い説明。",
---     ko = nil,
---     pl = nil,
---     pt = nil,
---     ro = nil,
---     ru = nil,
---     th = nil,
---     tr = nil,
---     tw = nil,
---     vi = nil,
---   },
---   image_url = "",
---   media_list = 
---   {
---     "",
---   },
---   groups = 
---   {
---     "",
---   },
---   attributes = 
---   {
---     {
---       admin_attribute_external_id = "attribute_1",
---       admin_attribute_name = 
---       {
---       },
---       values = 
---       {
---         {
---           value_external_id = "attribute_value",
---           value_name = 
---           {
---           },
---         },
---       },
---     },
---   },
---   prices = 
---   {
---     {
---       currency = "USD",
---       amount = 123.456,
---       is_default = true,
---       is_enabled = true,
---       country_iso = "US",
---     },
---   },
---   vc_prices = 
---   {
---     {
---       virtual_items_currency_schemas_sku = "bundle_1",
---       amount = 123,
---       is_default = true,
---       is_enabled = true,
---     },
---   },
---   is_enabled = true,
---   is_deleted = true,
---   is_free = false,
---   order = 123.456,
---   tax_categories = 
---   {
---     "",
---   },
---   pre_order = 
---   {
---     release_date = "",
---     is_enabled = true,
---     description = "",
---   },
---   regions = 
---   {
---     {
---       id = 1,
---     },
---   },
---   weight = 
---   {
---     grams = "874.5",
---     ounces = "3",
---   },
---   limits = 
---   {
---     per_user = 123,
---     per_item = 10,
---     recurrent_schedule = 
---     {
---       per_user = 
---       {
---         interval_type = "Recurrent refresh period.",
---         time = "02:00:00+03:00",
---       },
---     },
---   },
--- }
-function M.admin_update_physical_item_by_sku(project_id, item_sku, body, callback, retry_policy, cancellation_token)
-    assert(body)
-    assert(project_id)
-    assert(item_sku)
-
-    local url_path = "/v2/project/{project_id}/admin/items/physical_good/sku/{item_sku}"
-    url_path = url_path:gsub("{project_id}", uri.encode(tostring(project_id)))
-    url_path = url_path:gsub("{item_sku}", uri.encode(tostring(item_sku)))
-
-    local query_params = {}
-
-    local post_data = json.encode(body)
-
-    local headers = {}
-    headers["Content-Type"] = "application/json"
-    headers["Authorization"] = authorization.basic
-
-    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2369,7 +2112,7 @@ function M.remove_cart_promo_code(project_id, body, callback, retry_policy, canc
     end)
 end
 
---- Get promo code reward
+--- Get promo code rewards
 -- Gets promo code rewards by its code.
 -- Can be used to allow users to choose one of many items as a bonus.
 -- The usual case is choosing a DRM if the promo code contains a game as a bonus (`type=unit`).
@@ -2450,7 +2193,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -2493,7 +2236,7 @@ end
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
 -- @param retry_policy
@@ -2578,7 +2321,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -2621,7 +2364,7 @@ end
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param virtual_currency_sku (REQUIRED) Virtual currency SKU.
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
 -- @param retry_policy
@@ -2667,7 +2410,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -2710,7 +2453,7 @@ end
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param virtual_currency_package_sku (REQUIRED) Virtual currency package SKU.
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
 -- @param retry_policy
@@ -2756,7 +2499,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -2792,8 +2535,8 @@ function M.get_virtual_items_group(project_id, external_id, limit, offset, local
     end)
 end
 
---- Get items groups list
--- Gets an items groups list for building a catalog.
+--- Get item group list
+-- Gets an item group list for building a catalog.
 -- @path /v2/project/{project_id}/items/groups
 -- @name get_item_groups
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
@@ -2880,7 +2623,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback
@@ -3006,7 +2749,7 @@ end
 -- @param offset Number of the element from which the list is generated (the count starts from 0).
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
 -- @param additional_fields The list of additional fields. These fields will be in the response if you send them in your request.
--- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/in-game-store/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/in-game-store/features/pricing-policy/#pricing_policy_country_determination).
+-- @param country Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
 -- @param show_inactive_time_limited_items Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
 -- @param callback

@@ -1,4 +1,4 @@
-local igs = require("xsolla.igs")
+local shop = require("xsolla.shop")
 local log = require("xsolla.util.log")
 log.print()
 
@@ -71,7 +71,7 @@ local function create_order(self, item)
 			}
 		}
 	}
-	return igs.create_order_with_item(PROJECT_ID, item.sku, body)
+	return shop.create_order_with_item(PROJECT_ID, item.sku, body)
 end
 
 local function wait(seconds)
@@ -84,11 +84,11 @@ local function wait(seconds)
 end
 
 local function poll_order_status(self, order)
-	return igs.sync(function()
+	return shop.sync(function()
 		while true do
 			wait(3)
 			print("poll_order_status")
-			local result = igs.get_order(PROJECT_ID, order.order_id)
+			local result = shop.get_order(PROJECT_ID, order.order_id)
 			-- Order status: new/paid/done/canceled
 			if result.status == "new" then
 				log("Order is still in progress")
@@ -103,7 +103,7 @@ end
 local function get_sellable_items(self)
 	hide_buttons(self)
 	show_spinner(self)
-	igs.sync(function()
+	shop.sync(function()
 		local limit = 5
 		local offset = 0
 		local locale = "en"
@@ -111,7 +111,7 @@ local function get_sellable_items(self)
 		local country = "US"
 		local promo_code = "WINTER2021"
 		local show_inactive_time_limited_items=1
-		local items, err = igs.get_sellable_items(PROJECT_ID, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items)
+		local items, err = shop.get_sellable_items(PROJECT_ID, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items)
 		hide_spinner()
 		if not items then
 			pprint(err)
@@ -140,7 +140,7 @@ end
 local function buy_item(self, item)
 	print("buy", item.name)
 	
-	igs.sync(function()
+	shop.sync(function()
 		hide_buttons(self)
 		show_spinner(self)
 
@@ -186,7 +186,7 @@ function init(self)
 		sys.exit(1)
 		return
 	end
-	igs.set_bearer_token(DEBUG_BEARER_TOKEN)
+	shop.set_bearer_token(DEBUG_BEARER_TOKEN)
 	get_sellable_items(self)
 end
 
