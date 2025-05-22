@@ -48,6 +48,7 @@ local function on_sellable_items(items, err)
 end
 
 local function get_sellable_items()
+  local project_id = "123456"
   local limit = 5
   local offset = 0
   local locale = "en"
@@ -55,7 +56,7 @@ local function get_sellable_items()
   local country = "US"
   local promo_code = "WINTER2021"
   local show_inactive_time_limited_items = 1
-  shop.get_sellable_items(PROJECT_ID, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, on_sellable_items)
+  shop.get_sellable_items(project_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, on_sellable_items)
 end
 ```
 
@@ -65,6 +66,7 @@ It is also possible to use synchronous requests (using Lua coroutines). Example:
 local function get_sellable_items()
   -- run the request within a coroutine
   shop.sync(function()
+    local project_id = "123456"
     local limit = 5
     local offset = 0
     local locale = "en"
@@ -72,7 +74,7 @@ local function get_sellable_items()
     local country = "US"
     local promo_code = "WINTER2021"
     local show_inactive_time_limited_items = 1
-    local items, err = shop.get_sellable_items(PROJECT_ID, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items)
+    local items, err = shop.get_sellable_items(project_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items)
 
     -- do something with the sellable items
     pprint(items)
