@@ -98,4 +98,9 @@
       - name: cancellation_token
         type: table
         desc: Optional cancellation token
+{{#requestBody}}
+    examples:
+      - desc: |-
+              {{requestBodyYamlExample}}
+{{/requestBody}}
 {{/paths}}

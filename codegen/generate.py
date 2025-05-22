@@ -261,19 +261,20 @@ def process_paths(api):
 
     # expand requestBody and create example
     for data in api["paths"]:
-        if "requestBody" not in data: continue
-        expand_ref(data["requestBody"], api)
-        if "application/json" not in data["requestBody"]["content"]:
-            print("Expected content encoding JSON")
-            sys.exit(1)
-        schema = data["requestBody"]["content"]["application/json"]["schema"]
-        if "properties" in schema:
-            properties = schema["properties"]
-            for prop_id in schema["properties"]:
-                expand(schema["properties"][prop_id], api)
-        if "example" not in schema:
-            schema["example"] = property_to_example(schema, api)
-        data["requestBodyLuaExample"] = tolua(schema["example"], "-- ", "\n").strip()
+        if "requestBody" in data:
+            expand_ref(data["requestBody"], api)
+            if "application/json" not in data["requestBody"]["content"]:
+                print("Expected content encoding JSON")
+                sys.exit(1)
+            schema = data["requestBody"]["content"]["application/json"]["schema"]
+            if "properties" in schema:
+                properties = schema["properties"]
+                for prop_id in schema["properties"]:
+                    expand(schema["properties"][prop_id], api)
+            if "example" not in schema:
+                schema["example"] = property_to_example(schema, api)
+            data["requestBodyLuaExample"] = tolua(schema["example"], "-- ", "\n").strip()
+            data["requestBodyYamlExample"] = tolua(schema["example"], "              ", "\n").strip()
 
 api = load_api("openapi.json")
 
