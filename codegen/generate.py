@@ -9,7 +9,7 @@ import html
 import codecs
 import fnmatch
 import pystache
-from urllib.parse import unquote
+import urllib.parse
 
 TAG_RE = re.compile(r'(<!--.*?-->|<[^>]*>)')
 PRIMITIVE_TYPES = [ "integer", "number", "string", "boolean"]
@@ -65,19 +65,25 @@ def capitalize(s):
     if len(s) == 0: return s
     return s[0].upper() + s[1:]
 
-def render(data, templatefile, outfile):
+def render(data, templatefile, outfile, unquote = True):
     with open(templatefile, 'r') as f:
         template = f.read()
         result = pystache.render(template, data)
+        if unquote:
+            result = urllib.parse.unquote(result)
         with codecs.open(outfile, "wb", encoding="utf-8") as f:
-            f.write(unquote(result))
+            f.write(result)
 
+def cleanstring_common(s):
+    s = s.replace(": ", "%3A ")
+    s = striphtml(s)
+    return s
 
 def cleanstring_singleline(s):
     s = s.strip()
     s = s.replace("\n", ". ")
     s = s.replace("<br>", ". ")
-    s = striphtml(s)
+    s = cleanstring_common(s)
     return s
 
 def cleanstring_multiline(s, linebreak = "\n-- "):
@@ -86,7 +92,7 @@ def cleanstring_multiline(s, linebreak = "\n-- "):
     s = s.replace("<br><br>", linebreak)
     s = s.replace("<br> ", linebreak)
     s = s.replace("<br>", linebreak)
-    s = striphtml(s)
+    s = cleanstring_common(s)
     return s
 
 def load_api(path):
@@ -251,6 +257,7 @@ def process_paths(api):
             parameter["inquery"] = parameter["in"] == "query"
             parameter["name"] = parameter["name"].replace("[]", "")
             parameter["name"] = parameter["name"].replace("-", "_")
+            parameter["description"] = cleanstring_singleline(parameter["description"])
 
     # expand requestBody and create example
     for data in api["paths"]:
@@ -276,3 +283,4 @@ process_paths(api)
 #     f.write(json.dumps(api, indent = 2))
 
 render(api, "api_lua.mtl", "../xsolla/shop.lua")
+render(api, "script_api.mtl", "../xsolla/api/shop.script_api", unquote = False)

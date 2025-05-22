@@ -1232,7 +1232,7 @@
         desc: Virtual currency SKU.
       - name: platform 
         type: string
-        desc: Publishing platform the user plays on: `xsolla` (default), `playstation_network`, `xbox_live`, `pc_standalone`, `nintendo_shop`, `google_play`, `app_store_ios`, `android_standalone`, `ios_standalone`, `android_other`, `ios_other`, `pc_other`.
+        desc: Publishing platform the user plays on%3A `xsolla` (default), `playstation_network`, `xbox_live`, `pc_standalone`, `nintendo_shop`, `google_play`, `app_store_ios`, `android_standalone`, `ios_standalone`, `android_other`, `ios_other`, `pc_other`.
       - name: body
         type: table
       - name: callback
