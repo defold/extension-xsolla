@@ -1,0 +1,1480 @@
+- name: shop
+  type: table
+  desc: Functions to use the Xsolla Shop Builder API.
+
+  members:
+
+  - name: cancel
+    type: function
+    desc: Cancel a cancellation token
+    parameters:
+      - name: token
+        type: table
+        desc: The cancellation token
+
+  - name: cancellation_token
+    type: function
+    desc: Create a cancellation token
+    returns:
+      - name: token
+        type: table
+        desc: A cancellation token
+
+  - name: set_bearer_token
+    type: function
+    desc: Set a bearer token
+    parameters:
+      - name: token
+        type: string
+        desc: The bearer token
+
+  - name: set_username_password
+    type: function
+    desc: Set a username and password for basic authentication
+    parameters:
+      - name: username
+        type: string
+        desc: The username
+      - name: password
+        type: string
+        desc: The password
+
+  - name: set_merchant_auth
+    type: function
+    desc: Set merchant id and api key for use with 'basicMerchantAuth' authentication
+    parameters:
+      - name: merchant_id
+        type: string
+        desc: The merchant id
+      - name: api_key
+        type: string
+        desc: The API key
+
+  - name: set_auth_for_cart
+    type: function
+    desc: Set authorization when using 'AuthForCart' authentication
+    parameters:
+      - name: authorization_id
+        type: string
+        desc: Unique authorization id
+      - name: user
+        type: string
+        desc: The user email
+
+  - name: sync
+    type: function
+    desc: Run code within a coroutine.
+    parameters:
+      - name: fn
+        type: function
+        desc: The function to run
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+#*****************************************************************************************************
+
+
+  - name: get_bundle_list
+    type: function
+    desc: Get list of bundles
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_bundle
+    type: function
+    desc: Get specified bundle
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: sku (REQUIRED)
+        type: string
+        desc: Bundle SKU.
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_bundle_list_in_group
+    type: function
+    desc: Get list of bundles by specified group
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: external_id (REQUIRED)
+        type: string
+        desc: Group external ID.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_cart_by_id
+    type: function
+    desc: Get cart by cart ID
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: cart_id (REQUIRED)
+        type: string
+        desc: Cart ID.
+      - name: currency 
+        type: string
+        desc: The item price currency displayed in the cart. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_user_cart
+    type: function
+    desc: Get current user&#x27;s cart
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: currency 
+        type: string
+        desc: The item price currency displayed in the cart. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: cart_clear_by_id
+    type: function
+    desc: Delete all cart items by cart ID
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: cart_id (REQUIRED)
+        type: string
+        desc: Cart ID.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: cart_clear
+    type: function
+    desc: Delete all cart items from current cart
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: cart_fill
+    type: function
+    desc: Fill cart with items
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: cart_fill_by_id
+    type: function
+    desc: Fill specific cart with items
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: cart_id (REQUIRED)
+        type: string
+        desc: Cart ID.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: put_item_by_cart_id
+    type: function
+    desc: Update cart item by cart ID
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: cart_id (REQUIRED)
+        type: string
+        desc: Cart ID.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: delete_item_by_cart_id
+    type: function
+    desc: Delete cart item by cart ID
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: cart_id (REQUIRED)
+        type: string
+        desc: Cart ID.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: put_item
+    type: function
+    desc: Update cart item from current cart
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: delete_item
+    type: function
+    desc: Delete cart item from current cart
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: create_order_by_cart_id
+    type: function
+    desc: Create order with all items from particular cart
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: cart_id (REQUIRED)
+        type: string
+        desc: Cart ID.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: create_order
+    type: function
+    desc: Create order with all items from current cart
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: create_order_with_item
+    type: function
+    desc: Create order with specified item
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: create_free_order
+    type: function
+    desc: Create order with free cart
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: create_free_order_by_cart_id
+    type: function
+    desc: Create order with particular free cart
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: cart_id (REQUIRED)
+        type: string
+        desc: Cart ID.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: create_free_order_with_item
+    type: function
+    desc: Create order with specified free item
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_order
+    type: function
+    desc: Get order
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: order_id (REQUIRED)
+        type: string
+        desc: Order ID.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_upsell_for_project_client
+    type: function
+    desc: Get list of upsell items in project
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_games_list
+    type: function
+    desc: Get games list
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_games_group
+    type: function
+    desc: Get games list by specified group
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: external_id (REQUIRED)
+        type: string
+        desc: Group external ID.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_game_by_sku
+    type: function
+    desc: Get game for catalog
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_game_key_by_sku
+    type: function
+    desc: Get game key for catalog
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_game_keys_group
+    type: function
+    desc: Get game keys list by specified group
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: external_id (REQUIRED)
+        type: string
+        desc: Group external ID.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_drm_list
+    type: function
+    desc: Get DRM list
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_user_games
+    type: function
+    desc: Get list of games owned by user
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: sandbox 
+        type: integer
+        desc: What type of entitlements should be returned. If the parameter is set to 1, the entitlements received by the user in the sandbox mode only are returned. If the parameter isn&#x27;t passed or is set to 0, the entitlements received by the user in the live mode only are returned.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request. Available fields `attributes`.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: redeem_game_pin_code
+    type: function
+    desc: Redeem game code by client
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: redeem_coupon
+    type: function
+    desc: Redeem coupon code
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_coupon_rewards_by_code
+    type: function
+    desc: Get coupon rewards
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: coupon_code (REQUIRED)
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: redeem_promo_code
+    type: function
+    desc: Redeem promo code
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: remove_cart_promo_code
+    type: function
+    desc: Remove promo code from cart
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_promo_code_rewards_by_code
+    type: function
+    desc: Get promo code rewards
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: promocode_code (REQUIRED)
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: verify_promotion_code
+    type: function
+    desc: Verify promotion code
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: code (REQUIRED)
+        type: string
+        desc: Unique case-sensitive code. Contains letters and numbers.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_virtual_items
+    type: function
+    desc: Get virtual items list
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_virtual_items_sku
+    type: function
+    desc: Get virtual item by SKU
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_all_virtual_items
+    type: function
+    desc: Get all virtual items list
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_virtual_currency
+    type: function
+    desc: Get virtual currency list
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_virtual_currency_sku
+    type: function
+    desc: Get virtual currency by SKU
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: virtual_currency_sku (REQUIRED)
+        type: string
+        desc: Virtual currency SKU.
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_virtual_currency_package
+    type: function
+    desc: Get virtual currency package list
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_virtual_currency_package_sku
+    type: function
+    desc: Get virtual currency package by SKU
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: virtual_currency_package_sku (REQUIRED)
+        type: string
+        desc: Virtual currency package SKU.
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_virtual_items_group
+    type: function
+    desc: Get items list by specified group
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: external_id (REQUIRED)
+        type: string
+        desc: Group external ID.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_item_groups
+    type: function
+    desc: Get item group list
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: create_order_with_item_for_virtual_currency
+    type: function
+    desc: Create order with specified item purchased by virtual currency
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: item_sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: virtual_currency_sku (REQUIRED)
+        type: string
+        desc: Virtual currency SKU.
+      - name: platform 
+        type: string
+        desc: Publishing platform the user plays on: `xsolla` (default), `playstation_network`, `xbox_live`, `pc_standalone`, `nintendo_shop`, `google_play`, `app_store_ios`, `android_standalone`, `ios_standalone`, `android_other`, `ios_other`, `pc_other`.
+      - name: body
+        type: table
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_sellable_items
+    type: function
+    desc: Get sellable items list
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_sellable_item_by_id
+    type: function
+    desc: Get sellable item by ID
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: item_id (REQUIRED)
+        type: string
+        desc: Item ID.
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_sellable_item_by_sku
+    type: function
+    desc: Get sellable item by SKU
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: sku (REQUIRED)
+        type: string
+        desc: Item SKU.
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_sellable_items_group
+    type: function
+    desc: Get sellable items list by specified group
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: external_id (REQUIRED)
+        type: string
+        desc: Group external ID.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: locale 
+        type: string
+        desc: Response language. Two-letter lowercase language code per ISO 639-1.
+      - name: additional_fields 
+        type: array
+        desc: The list of additional fields. These fields will be in the response if you send them in your request.
+      - name: country 
+        type: string
+        desc: Two-letter uppercase country code per [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2). Check the documentation for detailed information about [countries supported by Xsolla](https://developers.xsolla.com/doc/shop-builder/references/supported-countries/) and [the process of determining the country](https://developers.xsolla.com/doc/shop-builder/features/pricing-policy/#pricing_policy_country_determination).
+      - name: promo_code 
+        type: string
+        desc: Unique case sensitive code. Contains letters and numbers.
+      - name: show_inactive_time_limited_items 
+        type: integer
+        desc: Shows time-limited items that are not available to the user. The validity period of such items has not started or has already expired.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_reward_chains_list
+    type: function
+    desc: Get current user&#x27;s reward chains
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: limit 
+        type: integer
+        desc: Limit for the number of elements on the page.
+      - name: offset 
+        type: integer
+        desc: Number of the element from which the list is generated (the count starts from 0).
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_user_reward_chain_balance
+    type: function
+    desc: Get current user&#x27;s value point balance
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: reward_chain_id (REQUIRED)
+        type: integer
+        desc: Reward chain ID.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: claim_user_reward_chain_step_reward
+    type: function
+    desc: Claim step reward
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
+      - name: reward_chain_id (REQUIRED)
+        type: integer
+        desc: Reward chain ID.
+      - name: step_id (REQUIRED)
+        type: integer
+        desc: Reward chain step ID.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: get_user_clan_top_contributors
+    type: function
+    desc: Get top 10 contributors to reward chain under clan
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID.
+      - name: reward_chain_id (REQUIRED)
+        type: integer
+        desc: Reward chain ID.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+  - name: user_clan_update
+    type: function
+    desc: Update current user&#x27;s clan
+    parameters:
+      - name: project_id (REQUIRED)
+        type: integer
+        desc: Project ID.
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token

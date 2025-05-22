@@ -1,0 +1,101 @@
+- name: shop
+  type: table
+  desc: Functions to use the Xsolla Shop Builder API.
+
+  members:
+
+  - name: cancel
+    type: function
+    desc: Cancel a cancellation token
+    parameters:
+      - name: token
+        type: table
+        desc: The cancellation token
+
+  - name: cancellation_token
+    type: function
+    desc: Create a cancellation token
+    returns:
+      - name: token
+        type: table
+        desc: A cancellation token
+
+  - name: set_bearer_token
+    type: function
+    desc: Set a bearer token
+    parameters:
+      - name: token
+        type: string
+        desc: The bearer token
+
+  - name: set_username_password
+    type: function
+    desc: Set a username and password for basic authentication
+    parameters:
+      - name: username
+        type: string
+        desc: The username
+      - name: password
+        type: string
+        desc: The password
+
+  - name: set_merchant_auth
+    type: function
+    desc: Set merchant id and api key for use with 'basicMerchantAuth' authentication
+    parameters:
+      - name: merchant_id
+        type: string
+        desc: The merchant id
+      - name: api_key
+        type: string
+        desc: The API key
+
+  - name: set_auth_for_cart
+    type: function
+    desc: Set authorization when using 'AuthForCart' authentication
+    parameters:
+      - name: authorization_id
+        type: string
+        desc: Unique authorization id
+      - name: user
+        type: string
+        desc: The user email
+
+  - name: sync
+    type: function
+    desc: Run code within a coroutine.
+    parameters:
+      - name: fn
+        type: function
+        desc: The function to run
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+
+#*****************************************************************************************************
+
+{{#paths}}
+
+  - name: {{operationId}}
+    type: function
+    desc: {{summary}}
+    parameters:
+{{#parameters}}
+      - name: {{name}} {{#required}}(REQUIRED){{/required}}
+        type: {{#schema}}{{type}}{{/schema}}
+        desc: {{description}}
+{{/parameters}}
+{{#requestBody}}
+      - name: body
+        type: table
+{{/requestBody}}
+      - name: callback
+        type: function
+        desc: Optional callback function
+      - name: retry_policy
+        type: table
+        desc: Optional retry policy
+      - name: cancellation_token
+        type: table
+        desc: Optional cancellation token
+{{/paths}}
