@@ -75,7 +75,7 @@ def render(data, templatefile, outfile, unquote = True):
             f.write(result)
 
 def cleanstring_common(s):
-    s = s.replace(": ", "%3A ")
+    s = s.replace(": ", " ") # a colon in a description will mess with the yaml
     s = striphtml(s)
     return s
 
@@ -273,8 +273,9 @@ def process_paths(api):
                     expand(schema["properties"][prop_id], api)
             if "example" not in schema:
                 schema["example"] = property_to_example(schema, api)
+
             data["requestBodyLuaExample"] = tolua(schema["example"], "-- ", "\n").strip()
-            data["requestBodyYamlExample"] = tolua(schema["example"], "              ", "\n").strip()
+            data["requestBodyYamlExample"] = urllib.parse.quote(tolua(schema["example"], "              ", "\n").strip())
 
 api = load_api("openapi.json")
 
@@ -284,4 +285,4 @@ process_paths(api)
 #     f.write(json.dumps(api, indent = 2))
 
 render(api, "api_lua.mtl", "../xsolla/shop.lua")
-render(api, "script_api.mtl", "../xsolla/api/shop.script_api", unquote = False)
+render(api, "script_api.mtl", "../xsolla/api/shop.script_api")

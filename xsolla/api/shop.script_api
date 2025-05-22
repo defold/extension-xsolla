@@ -291,7 +291,7 @@
                 items = 
                 {
                   {
-                    sku = &quot;com.xsolla.booster_mega_1&quot;,
+                    sku = "com.xsolla.booster_mega_1",
                     quantity = 123,
                   },
                 },
@@ -326,7 +326,7 @@
                 items = 
                 {
                   {
-                    sku = &quot;com.xsolla.booster_mega_1&quot;,
+                    sku = "com.xsolla.booster_mega_1",
                     quantity = 123,
                   },
                 },
@@ -462,14 +462,14 @@
       - desc: |-
               ```lua
               {
-                currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
-                locale = &quot;Response language.&quot;,
+                currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+                locale = "Response language.",
                 sandbox = true,
                 settings = 
                 {
                   cart_payment_settings_ui = 
                   {
-                    theme = &quot;Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.&quot;,
+                    theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
                     desktop = 
                     {
                       header = 
@@ -478,11 +478,11 @@
                         visible_logo = true,
                         visible_name = true,
                         visible_purchase = true,
-                        type = &quot;How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).&quot;,
+                        type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
                         close_button = true,
                       },
                     },
-                    mode = &quot;Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.&quot;,
+                    mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
                     user_account = 
                     {
                       payment_accounts = 
@@ -514,20 +514,20 @@
                     is_prevent_external_link_open = true,
                     is_payment_methods_list_mode = true,
                     is_independent_windows = true,
-                    currency_format = &quot;Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.&quot;,
+                    currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
                     is_show_close_widget_warning = true,
-                    layout = &quot;Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.&quot;,
+                    layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
                     is_three_ds_independent_windows = true,
                     is_cart_open_by_default = true,
                   },
                   cart_payment_settings_payment_method = 123,
-                  cart_payment_settings_return_url = &quot;Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.&quot;,
+                  cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
                   cart_payment_redirect_policy = 
                   {
-                    redirect_conditions = &quot;none&quot;,
+                    redirect_conditions = "none",
                     delay = 0,
-                    status_for_manual_redirection = &quot;none&quot;,
-                    redirect_button_caption = &quot;Text button&quot;,
+                    status_for_manual_redirection = "none",
+                    redirect_button_caption = "Text button",
                   },
                 },
                 custom_parameters = 
@@ -558,14 +558,14 @@
       - desc: |-
               ```lua
               {
-                currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
-                locale = &quot;Response language.&quot;,
+                currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+                locale = "Response language.",
                 sandbox = true,
                 settings = 
                 {
                   cart_payment_settings_ui = 
                   {
-                    theme = &quot;Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.&quot;,
+                    theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
                     desktop = 
                     {
                       header = 
@@ -574,11 +574,11 @@
                         visible_logo = true,
                         visible_name = true,
                         visible_purchase = true,
-                        type = &quot;How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).&quot;,
+                        type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
                         close_button = true,
                       },
                     },
-                    mode = &quot;Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.&quot;,
+                    mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
                     user_account = 
                     {
                       payment_accounts = 
@@ -610,20 +610,20 @@
                     is_prevent_external_link_open = true,
                     is_payment_methods_list_mode = true,
                     is_independent_windows = true,
-                    currency_format = &quot;Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.&quot;,
+                    currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
                     is_show_close_widget_warning = true,
-                    layout = &quot;Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.&quot;,
+                    layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
                     is_three_ds_independent_windows = true,
                     is_cart_open_by_default = true,
                   },
                   cart_payment_settings_payment_method = 123,
-                  cart_payment_settings_return_url = &quot;Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.&quot;,
+                  cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
                   cart_payment_redirect_policy = 
                   {
-                    redirect_conditions = &quot;none&quot;,
+                    redirect_conditions = "none",
                     delay = 0,
-                    status_for_manual_redirection = &quot;none&quot;,
-                    redirect_button_caption = &quot;Text button&quot;,
+                    status_for_manual_redirection = "none",
+                    redirect_button_caption = "Text button",
                   },
                 },
                 custom_parameters = 
@@ -657,16 +657,16 @@
       - desc: |-
               ```lua
               {
-                currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
-                locale = &quot;Response language.&quot;,
+                currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+                locale = "Response language.",
                 sandbox = true,
                 quantity = 123,
-                promo_code = &quot;Redeems a code of a promo code promotion with payment.&quot;,
+                promo_code = "Redeems a code of a promo code promotion with payment.",
                 settings = 
                 {
                   cart_payment_settings_ui = 
                   {
-                    theme = &quot;Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.&quot;,
+                    theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
                     desktop = 
                     {
                       header = 
@@ -675,11 +675,11 @@
                         visible_logo = true,
                         visible_name = true,
                         visible_purchase = true,
-                        type = &quot;How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).&quot;,
+                        type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
                         close_button = true,
                       },
                     },
-                    mode = &quot;Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.&quot;,
+                    mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
                     user_account = 
                     {
                       payment_accounts = 
@@ -711,20 +711,20 @@
                     is_prevent_external_link_open = true,
                     is_payment_methods_list_mode = true,
                     is_independent_windows = true,
-                    currency_format = &quot;Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.&quot;,
+                    currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
                     is_show_close_widget_warning = true,
-                    layout = &quot;Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.&quot;,
+                    layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
                     is_three_ds_independent_windows = true,
                     is_cart_open_by_default = true,
                   },
                   cart_payment_settings_payment_method = 123,
-                  cart_payment_settings_return_url = &quot;Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.&quot;,
+                  cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
                   cart_payment_redirect_policy = 
                   {
-                    redirect_conditions = &quot;none&quot;,
+                    redirect_conditions = "none",
                     delay = 0,
-                    status_for_manual_redirection = &quot;none&quot;,
-                    redirect_button_caption = &quot;Text button&quot;,
+                    status_for_manual_redirection = "none",
+                    redirect_button_caption = "Text button",
                   },
                 },
                 custom_parameters = 
@@ -755,14 +755,14 @@
       - desc: |-
               ```lua
               {
-                currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
-                locale = &quot;Response language.&quot;,
+                currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+                locale = "Response language.",
                 sandbox = true,
                 settings = 
                 {
                   cart_payment_settings_ui = 
                   {
-                    theme = &quot;Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.&quot;,
+                    theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
                     desktop = 
                     {
                       header = 
@@ -771,11 +771,11 @@
                         visible_logo = true,
                         visible_name = true,
                         visible_purchase = true,
-                        type = &quot;How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).&quot;,
+                        type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
                         close_button = true,
                       },
                     },
-                    mode = &quot;Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.&quot;,
+                    mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
                     user_account = 
                     {
                       payment_accounts = 
@@ -807,20 +807,20 @@
                     is_prevent_external_link_open = true,
                     is_payment_methods_list_mode = true,
                     is_independent_windows = true,
-                    currency_format = &quot;Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.&quot;,
+                    currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
                     is_show_close_widget_warning = true,
-                    layout = &quot;Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.&quot;,
+                    layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
                     is_three_ds_independent_windows = true,
                     is_cart_open_by_default = true,
                   },
                   cart_payment_settings_payment_method = 123,
-                  cart_payment_settings_return_url = &quot;Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.&quot;,
+                  cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
                   cart_payment_redirect_policy = 
                   {
-                    redirect_conditions = &quot;none&quot;,
+                    redirect_conditions = "none",
                     delay = 0,
-                    status_for_manual_redirection = &quot;none&quot;,
-                    redirect_button_caption = &quot;Text button&quot;,
+                    status_for_manual_redirection = "none",
+                    redirect_button_caption = "Text button",
                   },
                 },
                 custom_parameters = 
@@ -854,14 +854,14 @@
       - desc: |-
               ```lua
               {
-                currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
-                locale = &quot;Response language.&quot;,
+                currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+                locale = "Response language.",
                 sandbox = true,
                 settings = 
                 {
                   cart_payment_settings_ui = 
                   {
-                    theme = &quot;Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.&quot;,
+                    theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
                     desktop = 
                     {
                       header = 
@@ -870,11 +870,11 @@
                         visible_logo = true,
                         visible_name = true,
                         visible_purchase = true,
-                        type = &quot;How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).&quot;,
+                        type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
                         close_button = true,
                       },
                     },
-                    mode = &quot;Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.&quot;,
+                    mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
                     user_account = 
                     {
                       payment_accounts = 
@@ -906,20 +906,20 @@
                     is_prevent_external_link_open = true,
                     is_payment_methods_list_mode = true,
                     is_independent_windows = true,
-                    currency_format = &quot;Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.&quot;,
+                    currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
                     is_show_close_widget_warning = true,
-                    layout = &quot;Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.&quot;,
+                    layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
                     is_three_ds_independent_windows = true,
                     is_cart_open_by_default = true,
                   },
                   cart_payment_settings_payment_method = 123,
-                  cart_payment_settings_return_url = &quot;Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.&quot;,
+                  cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
                   cart_payment_redirect_policy = 
                   {
-                    redirect_conditions = &quot;none&quot;,
+                    redirect_conditions = "none",
                     delay = 0,
-                    status_for_manual_redirection = &quot;none&quot;,
-                    redirect_button_caption = &quot;Text button&quot;,
+                    status_for_manual_redirection = "none",
+                    redirect_button_caption = "Text button",
                   },
                 },
                 custom_parameters = 
@@ -953,16 +953,16 @@
       - desc: |-
               ```lua
               {
-                currency = &quot;Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).&quot;,
-                locale = &quot;Response language.&quot;,
+                currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+                locale = "Response language.",
                 sandbox = true,
                 quantity = 123,
-                promo_code = &quot;Redeems a code of a promo code promotion with payment.&quot;,
+                promo_code = "Redeems a code of a promo code promotion with payment.",
                 settings = 
                 {
                   cart_payment_settings_ui = 
                   {
-                    theme = &quot;Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.&quot;,
+                    theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
                     desktop = 
                     {
                       header = 
@@ -971,11 +971,11 @@
                         visible_logo = true,
                         visible_name = true,
                         visible_purchase = true,
-                        type = &quot;How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).&quot;,
+                        type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
                         close_button = true,
                       },
                     },
-                    mode = &quot;Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.&quot;,
+                    mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
                     user_account = 
                     {
                       payment_accounts = 
@@ -1007,20 +1007,20 @@
                     is_prevent_external_link_open = true,
                     is_payment_methods_list_mode = true,
                     is_independent_windows = true,
-                    currency_format = &quot;Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.&quot;,
+                    currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
                     is_show_close_widget_warning = true,
-                    layout = &quot;Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.&quot;,
+                    layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
                     is_three_ds_independent_windows = true,
                     is_cart_open_by_default = true,
                   },
                   cart_payment_settings_payment_method = 123,
-                  cart_payment_settings_return_url = &quot;Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.&quot;,
+                  cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
                   cart_payment_redirect_policy = 
                   {
-                    redirect_conditions = &quot;none&quot;,
+                    redirect_conditions = "none",
                     delay = 0,
-                    status_for_manual_redirection = &quot;none&quot;,
-                    redirect_button_caption = &quot;Text button&quot;,
+                    status_for_manual_redirection = "none",
+                    redirect_button_caption = "Text button",
                   },
                 },
                 custom_parameters = 
@@ -1324,7 +1324,7 @@
       - desc: |-
               ```lua
               {
-                code = &quot;AAAA-BBBB-CCCC-DDDD&quot;,
+                code = "AAAA-BBBB-CCCC-DDDD",
                 sandbox = false,
               }
               ```
@@ -1351,7 +1351,7 @@
       - desc: |-
               ```lua
               {
-                coupon_code = &quot;WINTER2021&quot;,
+                coupon_code = "WINTER2021",
                 selected_unit_items = 
                 {
                 },
@@ -1400,10 +1400,10 @@
       - desc: |-
               ```lua
               {
-                coupon_code = &quot;SUMMER2021&quot;,
+                coupon_code = "SUMMER2021",
                 cart = 
                 {
-                  id = &quot;Cart ID.&quot;,
+                  id = "Cart ID.",
                 },
                 selected_unit_items = 
                 {
@@ -1435,7 +1435,7 @@
               {
                 cart = 
                 {
-                  id = &quot;Cart ID.&quot;,
+                  id = "Cart ID.",
                 },
               }
               ```
@@ -1780,7 +1780,7 @@
         desc: Virtual currency SKU.
       - name: platform 
         type: string
-        desc: Publishing platform the user plays on%3A `xsolla` (default), `playstation_network`, `xbox_live`, `pc_standalone`, `nintendo_shop`, `google_play`, `app_store_ios`, `android_standalone`, `ios_standalone`, `android_other`, `ios_other`, `pc_other`.
+        desc: Publishing platform the user plays on `xsolla` (default), `playstation_network`, `xbox_live`, `pc_standalone`, `nintendo_shop`, `google_play`, `app_store_ios`, `android_standalone`, `ios_standalone`, `android_other`, `ios_other`, `pc_other`.
       - name: body
         type: table
       - name: callback
