@@ -39,4 +39,10 @@ function M.decode(data)
 end
 
 
+-- replace with native crypto functions if they are available
+-- https://github.com/defold/extension-crypt/
+M.encode = _G.crypt and _G.crypt.encode_base64 or M.encode
+M.decode = _G.crypt and _G.crypt.decode_base64 or M.decode
+
+
 return M

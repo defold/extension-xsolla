@@ -1,13 +1,7 @@
 local log = require "xsolla.util.log"
-local b64 = require "xsolla.util.b64"
 local uri = require "xsolla.util.uri"
 local uuid = require "xsolla.util.uuid"
 
-b64.encode = _G.crypt and _G.crypt.encode_base64 or b64.encode
-b64.decode = _G.crypt and _G.crypt.decode_base64 or b64.decode
-
-local b64_encode = b64.encode
-local b64_decode = b64.decode
 local uri_encode_component = uri.encode_component
 local uri_decode_component = uri.decode_component
 local uri_encode = uri.encode
@@ -90,7 +84,7 @@ end
 -- @param post_data String of post data.
 -- @param callback The callback function.
 -- @return The mac address string.
-function M.http(config, url_path, query_params, method, post_data, retry_policy, cancellation_token, callback)
+function M.http(config, url_path, query_params, method, headers, post_data, retry_policy, cancellation_token, callback)
 	local query_string = ""
 	if next(query_params) then
 		for query_key,query_value in pairs(query_params) do
@@ -104,17 +98,6 @@ function M.http(config, url_path, query_params, method, post_data, retry_policy,
 		end
 	end
 	local url = ("%s%s%s"):format(config.http_uri, url_path, query_string)
-
-	local headers = {}
-	if post_data then
-		headers["Content-Type"] = "application/json"
-	end
-	if config.bearer_token then
-		headers["Authorization"] = ("Bearer %s"):format(config.bearer_token)
-	elseif config.username then
-		local credentials = b64_encode(config.username .. ":" .. config.password)
-		headers["Authorization"] = ("Basic %s"):format(credentials)
-	end
 
 	local options = {
 		timeout = config.timeout

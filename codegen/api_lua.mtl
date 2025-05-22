@@ -3,6 +3,7 @@ local net = require("xsolla.util.net")
 local uri = require("xsolla.util.uri")
 local async = require("xsolla.util.async")
 local retries = require("xsolla.util.retries")
+local b64 = require "xsolla.util.b64"
 
 local M = {}
 
@@ -12,6 +13,13 @@ local SERVERS = {
     {{/servers}}
 }
 
+local authorization = {
+    bearer = nil,
+    basic = nil,
+    merchant = nil,
+    x_unauthorized_id = nil,
+    x_user = nil,
+}
 
 local config = {
     http_uri = SERVERS[1],
@@ -25,13 +33,13 @@ local config = {
 -- cancellation tokens associated with a coroutine
 local cancellation_tokens = {}
 
--- cancel a cancellation token
+--- cancel a cancellation token
 function M.cancel(token)
     assert(token)
     token.cancelled = true
 end
 
--- create a cancellation token
+--- create a cancellation token
 -- use this to cancel an ongoing API call or a sequence of API calls
 -- @return token Pass the token to a call to xsolla.sync() or to any of the API calls
 function M.cancellation_token()
@@ -44,8 +52,37 @@ function M.cancellation_token()
     return token
 end
 
+--- set bearer token for authorization
+-- @param bearer_token
 function M.set_bearer_token(bearer_token)
     config.bearer_token = bearer_token
+    authorization.bearer = ("Bearer %s"):format(bearer_token)
+end
+
+--- set username and password for authorization
+-- @param username
+-- @param password
+function M.set_username_password(username, password)
+    config.username = username
+    config.password = password
+    local credentials = b64_encode(config.username .. ":" .. config.password)
+    authorization.basic = ("Basic %s"):format(credentials)
+end
+
+--- set merchant id and api key for use with 'basicMerchantAuth' authentication
+-- @param merchant_id
+-- @param api_key
+function M.set_merchant_auth(merchant_id, api_key)
+    local credentials = b64_encode(merchant_id .. ":" .. api_key)
+    authorization.merchant = ("Basic %s"):format(credentials)
+end
+
+--- set authorization when using 'AuthForCart' authentication
+-- @param authorization_id unique identifier
+-- @param user e-mail
+function M.set_auth_for_cart(authorization_id, user)
+    authorization.x_unauthorized_id = authorization_id
+    authorization.x_user = b64_encode(user)
 end
 
 -- Private
@@ -82,10 +119,10 @@ function M.sync(fn, cancellation_token)
 end
 
 -- http request helper used to reduce code duplication in all API functions below
-local function http(callback, url_path, query_params, method, post_data, retry_policy, cancellation_token, handler_fn)
+local function http(callback, url_path, query_params, method, headers, post_data, retry_policy, cancellation_token, handler_fn)
     if callback then
         log(url_path, "with callback")
-        net.http(config, url_path, query_params, method, post_data, retry_policy, cancellation_token, function(result)
+        net.http(config, url_path, query_params, method, headers, post_data, retry_policy, cancellation_token, function(result)
             if not cancellation_token or not cancellation_token.cancelled then
                 if result.error then
                     callback(handler_fn(false, result))
@@ -107,7 +144,7 @@ local function http(callback, url_path, query_params, method, post_data, retry_p
         end
 
         return async(function(done)
-            net.http(config, url_path, query_params, method, post_data, retry_policy, cancellation_token, function(result)
+            net.http(config, url_path, query_params, method, headers, post_data, retry_policy, cancellation_token, function(result)
                 if cancellation_token and cancellation_token.cancelled then
                     cancellation_tokens[co] = nil
                     return
@@ -126,7 +163,7 @@ end
 
 --- {{summary}}
 -- {{description}}
--- {{path}}
+-- @path {{path}}
 -- @name {{operationId}}
 {{#parameters}}
 -- @param {{name}} {{#required}}(REQUIRED) {{/required}}{{description}}
@@ -137,12 +174,13 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
-{{#requestBodyExample}}
+{{#security}}
+-- @note {{description}}
+{{/security}}
+{{#requestBodyLuaExample}}
 -- @example Request body example
---[[
-{{{requestBodyExample}}}
-]]--
-{{/requestBodyExample}}
+{{{requestBodyLuaExample}}}
+{{/requestBodyLuaExample}}
 function M.{{operationId}}({{#parameters}}{{name}}, {{/parameters}}{{#requestBody}}body, {{/requestBody}}callback, retry_policy, cancellation_token)
     {{#requestBody}}
     assert(body)
@@ -167,9 +205,33 @@ function M.{{operationId}}({{#parameters}}{{name}}, {{/parameters}}{{#requestBod
     {{/inquery}}
     {{/parameters}}
 
-    local post_data = {{#requestBody}}body{{/requestBody}}{{^requestBody}}nil{{/requestBody}}
+    local post_data = {{#requestBody}}json.encode(body){{/requestBody}}{{^requestBody}}nil{{/requestBody}}
 
-    return http(callback, url_path, query_params, "{{method}}", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    {{#requestBody}}
+    headers["Content-Type"] = "application/json"
+    {{/requestBody}}
+    {{#security}}
+    {{#XsollaLoginUserJWT}}
+    headers["Authorization"] = authorization.bearer
+    {{/XsollaLoginUserJWT}}
+    {{#basicAuth}}
+    headers["Authorization"] = authorization.basic
+    {{/basicAuth}}
+    {{#basicMerchantAuth}}
+    headers["Authorization"] = authorization.merchant
+    {{/basicMerchantAuth}}
+    {{#AuthForCart}}
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+    {{/AuthForCart}}
+    {{/security}}
+
+    return http(callback, url_path, query_params, "{{method}}", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end

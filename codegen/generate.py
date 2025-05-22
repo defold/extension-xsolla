@@ -83,6 +83,8 @@ def cleanstring_singleline(s):
 def cleanstring_multiline(s, linebreak = "\n-- "):
     s = s.strip()
     s = s.replace("\n", linebreak)
+    s = s.replace("<br><br>", linebreak)
+    s = s.replace("<br> ", linebreak)
     s = s.replace("<br>", linebreak)
     s = striphtml(s)
     return s
@@ -181,7 +183,6 @@ def property_to_example(prop, api):
         sys.exit(4)
     return example
 
-
 def dict_to_array(d):
     a = []
     for k in d:
@@ -209,6 +210,29 @@ def process_paths(api):
             print("  ", data["path"], data["method"])
             api["paths"].append(data)
 
+    # convert security schemes
+    for data in api["paths"]:
+        security = []
+        for scheme in data.get("security", {}):
+            scheme_id = None
+            if "XsollaLoginUserJWT" in scheme:
+                scheme_id = "XsollaLoginUserJWT"
+            elif "basicAuth" in scheme:
+                scheme_id = "basicAuth"
+            elif "AuthForCart" in scheme:
+                scheme_id = "AuthForCart"
+            elif "basicMerchantAuth" in scheme:
+                scheme_id = "basicMerchantAuth"
+            else:
+                print("Unknown security scheme", scheme_id)
+                sys.exit(1)
+            security.append({
+                scheme_id: True,
+                "scheme": scheme_id,
+                "description": cleanstring_multiline(api["components"]["securitySchemes"][scheme_id]["description"])
+            })
+        data["security"] = security
+
     # convert response codes to list
     for data in api["paths"]:
         responses = data["responses"]
@@ -232,6 +256,9 @@ def process_paths(api):
     for data in api["paths"]:
         if "requestBody" not in data: continue
         expand_ref(data["requestBody"], api)
+        if "application/json" not in data["requestBody"]["content"]:
+            print("Expected content encoding JSON")
+            sys.exit(1)
         schema = data["requestBody"]["content"]["application/json"]["schema"]
         if "properties" in schema:
             properties = schema["properties"]
@@ -239,8 +266,7 @@ def process_paths(api):
                 expand(schema["properties"][prop_id], api)
         if "example" not in schema:
             schema["example"] = property_to_example(schema, api)
-            schema["example"] = json.dumps(schema["example"], indent=2)
-        data["requestBodyExample"] = schema["example"]
+        data["requestBodyLuaExample"] = tolua(schema["example"], "-- ", "\n").strip()
 
 api = load_api("openapi.json")
 

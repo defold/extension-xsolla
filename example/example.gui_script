@@ -71,7 +71,7 @@ local function create_order(self, item)
 			}
 		}
 	}
-	return igs.create_order_with_item(PROJECT_ID, item.sku, json.encode(body))
+	return igs.create_order_with_item(PROJECT_ID, item.sku, body)
 end
 
 local function wait(seconds)

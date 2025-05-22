@@ -3,6 +3,7 @@ local net = require("xsolla.util.net")
 local uri = require("xsolla.util.uri")
 local async = require("xsolla.util.async")
 local retries = require("xsolla.util.retries")
+local b64 = require "xsolla.util.b64"
 
 local M = {}
 
@@ -10,6 +11,13 @@ local SERVERS = {
     "https://store.xsolla.com/api",
 }
 
+local authorization = {
+    bearer = nil,
+    basic = nil,
+    merchant = nil,
+    x_unauthorized_id = nil,
+    x_user = nil,
+}
 
 local config = {
     http_uri = SERVERS[1],
@@ -23,13 +31,13 @@ local config = {
 -- cancellation tokens associated with a coroutine
 local cancellation_tokens = {}
 
--- cancel a cancellation token
+--- cancel a cancellation token
 function M.cancel(token)
     assert(token)
     token.cancelled = true
 end
 
--- create a cancellation token
+--- create a cancellation token
 -- use this to cancel an ongoing API call or a sequence of API calls
 -- @return token Pass the token to a call to xsolla.sync() or to any of the API calls
 function M.cancellation_token()
@@ -42,8 +50,37 @@ function M.cancellation_token()
     return token
 end
 
+--- set bearer token for authorization
+-- @param bearer_token
 function M.set_bearer_token(bearer_token)
     config.bearer_token = bearer_token
+    authorization.bearer = ("Bearer %s"):format(bearer_token)
+end
+
+--- set username and password for authorization
+-- @param username
+-- @param password
+function M.set_username_password(username, password)
+    config.username = username
+    config.password = password
+    local credentials = b64_encode(config.username .. ":" .. config.password)
+    authorization.basic = ("Basic %s"):format(credentials)
+end
+
+--- set merchant id and api key for use with 'basicMerchantAuth' authentication
+-- @param merchant_id
+-- @param api_key
+function M.set_merchant_auth(merchant_id, api_key)
+    local credentials = b64_encode(merchant_id .. ":" .. api_key)
+    authorization.merchant = ("Basic %s"):format(credentials)
+end
+
+--- set authorization when using 'AuthForCart' authentication
+-- @param authorization_id unique identifier
+-- @param user e-mail
+function M.set_auth_for_cart(authorization_id, user)
+    authorization.x_unauthorized_id = authorization_id
+    authorization.x_user = b64_encode(user)
 end
 
 -- Private
@@ -80,10 +117,10 @@ function M.sync(fn, cancellation_token)
 end
 
 -- http request helper used to reduce code duplication in all API functions below
-local function http(callback, url_path, query_params, method, post_data, retry_policy, cancellation_token, handler_fn)
+local function http(callback, url_path, query_params, method, headers, post_data, retry_policy, cancellation_token, handler_fn)
     if callback then
         log(url_path, "with callback")
-        net.http(config, url_path, query_params, method, post_data, retry_policy, cancellation_token, function(result)
+        net.http(config, url_path, query_params, method, headers, post_data, retry_policy, cancellation_token, function(result)
             if not cancellation_token or not cancellation_token.cancelled then
                 if result.error then
                     callback(handler_fn(false, result))
@@ -105,7 +142,7 @@ local function http(callback, url_path, query_params, method, post_data, retry_p
         end
 
         return async(function(done)
-            net.http(config, url_path, query_params, method, post_data, retry_policy, cancellation_token, function(result)
+            net.http(config, url_path, query_params, method, headers, post_data, retry_policy, cancellation_token, function(result)
                 if cancellation_token and cancellation_token.cancelled then
                     cancellation_tokens[co] = nil
                     return
@@ -125,13 +162,11 @@ end
 -- Gets a list of bundles for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/bundle
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/bundle
 -- @name get_bundle_list
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param limit Limit for the number of elements on the page.
@@ -144,6 +179,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_bundle_list(project_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -161,7 +199,10 @@ function M.get_bundle_list(project_id, limit, offset, locale, additional_fields,
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -170,9 +211,8 @@ end
 -- Gets a specified bundle.
 -- 
 -- Note
--- 
 -- This endpoint, accessible without authorization, returns generic data. However, authorization enriches the response with user-specific details for a personalized result, such as available user limits and promotions.
--- /v2/project/{project_id}/items/bundle/sku/{sku}
+-- @path /v2/project/{project_id}/items/bundle/sku/{sku}
 -- @name get_bundle
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param sku (REQUIRED) Bundle SKU.
@@ -181,6 +221,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_bundle(project_id, sku, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(sku)
@@ -195,7 +238,10 @@ function M.get_bundle(project_id, sku, promo_code, show_inactive_time_limited_it
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -204,13 +250,11 @@ end
 -- Gets a list of bundles within a group for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/bundle/group/{external_id}
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/bundle/group/{external_id}
 -- @name get_bundle_list_in_group
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Group external ID.
@@ -224,6 +268,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_bundle_list_in_group(project_id, external_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(external_id)
@@ -243,14 +290,17 @@ function M.get_bundle_list_in_group(project_id, external_id, limit, offset, loca
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Get cart by cart ID
 -- Returns user’s cart by cart ID.
--- /v2/project/{project_id}/cart/{cart_id}
+-- @path /v2/project/{project_id}/cart/{cart_id}
 -- @name get_cart_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
@@ -259,6 +309,16 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_cart_by_id(project_id, cart_id, currency, locale, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(cart_id)
@@ -273,14 +333,22 @@ function M.get_cart_by_id(project_id, cart_id, currency, locale, callback, retry
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Get current user&#x27;s cart
 -- Returns the current user&#x27;s cart.
--- /v2/project/{project_id}/cart
+-- @path /v2/project/{project_id}/cart
 -- @name get_user_cart
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param currency The item price currency displayed in the cart. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).
@@ -288,6 +356,16 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_user_cart(project_id, currency, locale, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -300,20 +378,38 @@ function M.get_user_cart(project_id, currency, locale, callback, retry_policy, c
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Delete all cart items by cart ID
 -- Deletes all cart items.
--- /v2/project/{project_id}/cart/{cart_id}/clear
+-- @path /v2/project/{project_id}/cart/{cart_id}/clear
 -- @name cart_clear_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.cart_clear_by_id(project_id, cart_id, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(cart_id)
@@ -326,19 +422,37 @@ function M.cart_clear_by_id(project_id, cart_id, callback, retry_policy, cancell
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Delete all cart items from current cart
 -- Deletes all cart items.
--- /v2/project/{project_id}/cart/clear
+-- @path /v2/project/{project_id}/cart/clear
 -- @name cart_clear
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.cart_clear(project_id, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -349,24 +463,48 @@ function M.cart_clear(project_id, callback, retry_policy, cancellation_token)
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Fill cart with items
 -- Fills the cart with items. If the cart already has an item with the same SKU, the existing item will be replaced by the passed value.
--- /v2/project/{project_id}/cart/fill
+-- @path /v2/project/{project_id}/cart/fill
 -- @name cart_fill
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param body
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{'items': [{'sku': 'com.xsolla.booster_mega_1', 'quantity': 123}]}
-]]--
+-- {
+--   items = 
+--   {
+--     {
+--       sku = "com.xsolla.booster_mega_1",
+--       quantity = 123,
+--     },
+--   },
+-- }
 function M.cart_fill(project_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -376,16 +514,25 @@ function M.cart_fill(project_id, body, callback, retry_policy, cancellation_toke
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Fill specific cart with items
 -- Fills the specific cart with items. If the cart already has an item with the same SKU, the existing item position will be replaced by the passed value.
--- /v2/project/{project_id}/cart/{cart_id}/fill
+-- @path /v2/project/{project_id}/cart/{cart_id}/fill
 -- @name cart_fill_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
@@ -393,10 +540,26 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{'items': [{'sku': 'com.xsolla.booster_mega_1', 'quantity': 123}]}
-]]--
+-- {
+--   items = 
+--   {
+--     {
+--       sku = "com.xsolla.booster_mega_1",
+--       quantity = 123,
+--     },
+--   },
+-- }
 function M.cart_fill_by_id(project_id, cart_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -408,16 +571,25 @@ function M.cart_fill_by_id(project_id, cart_id, body, callback, retry_policy, ca
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Update cart item by cart ID
 -- Updates an existing cart item or creates the one in the cart.
--- /v2/project/{project_id}/cart/{cart_id}/item/{item_sku}
+-- @path /v2/project/{project_id}/cart/{cart_id}/item/{item_sku}
 -- @name put_item_by_cart_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
@@ -426,12 +598,20 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "quantity": 123.456
-}
-]]--
+-- {
+--   quantity = 123.456,
+-- }
 function M.put_item_by_cart_id(project_id, cart_id, item_sku, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -445,16 +625,25 @@ function M.put_item_by_cart_id(project_id, cart_id, item_sku, body, callback, re
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Delete cart item by cart ID
 -- Removes an item from the cart.
--- /v2/project/{project_id}/cart/{cart_id}/item/{item_sku}
+-- @path /v2/project/{project_id}/cart/{cart_id}/item/{item_sku}
 -- @name delete_item_by_cart_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
@@ -462,6 +651,16 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.delete_item_by_cart_id(project_id, cart_id, item_sku, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(cart_id)
@@ -476,14 +675,22 @@ function M.delete_item_by_cart_id(project_id, cart_id, item_sku, callback, retry
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "DELETE", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Update cart item from current cart
 -- Updates an existing cart item or creates the one in the cart.
--- /v2/project/{project_id}/cart/item/{item_sku}
+-- @path /v2/project/{project_id}/cart/item/{item_sku}
 -- @name put_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
@@ -491,12 +698,20 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "quantity": 123.456
-}
-]]--
+-- {
+--   quantity = 123.456,
+-- }
 function M.put_item(project_id, item_sku, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -508,22 +723,41 @@ function M.put_item(project_id, item_sku, body, callback, retry_policy, cancella
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Delete cart item from current cart
 -- Removes an item from the cart.
--- /v2/project/{project_id}/cart/item/{item_sku}
+-- @path /v2/project/{project_id}/cart/item/{item_sku}
 -- @name delete_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.delete_item(project_id, item_sku, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(item_sku)
@@ -536,7 +770,15 @@ function M.delete_item(project_id, item_sku, callback, retry_policy, cancellatio
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "DELETE", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "DELETE", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -551,9 +793,8 @@ end
 -- For testing purposes, use this URL: `https://sandbox-secure.xsolla.com/paystation4/?token={token}`.
 -- 
 -- Notice 
--- 
 --  As this method uses the IP to determine the user’s country and select a currency for the order, it is important to only use this method from the client side and not from the server side. Using this method from the server side may cause incorrect currency determination and affect payment methods in Pay Station. 
--- /v2/project/{project_id}/payment/cart/{cart_id}
+-- @path /v2/project/{project_id}/payment/cart/{cart_id}
 -- @name create_order_by_cart_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
@@ -561,68 +802,90 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "currency": "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
-  "locale": "Response language.",
-  "sandbox": true,
-  "settings": {
-    "cart_payment_settings_ui": {
-      "theme": "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
-      "desktop": {
-        "header": {
-          "is_visible": true,
-          "visible_logo": true,
-          "visible_name": true,
-          "visible_purchase": true,
-          "type": "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
-          "close_button": true
-        }
-      },
-      "mode": "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
-      "user_account": {
-        "payment_accounts": {
-          "enable": true
-        },
-        "info": {
-          "enable": true,
-          "order": 123
-        },
-        "subscriptions": {
-          "enable": true,
-          "order": 123
-        }
-      },
-      "header": {
-        "visible_virtual_currency_balance": true
-      },
-      "mobile": {
-        "header": {
-          "close_button": true
-        }
-      },
-      "is_prevent_external_link_open": true,
-      "is_payment_methods_list_mode": true,
-      "is_independent_windows": true,
-      "currency_format": "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
-      "is_show_close_widget_warning": true,
-      "layout": "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
-      "is_three_ds_independent_windows": true,
-      "is_cart_open_by_default": true
-    },
-    "cart_payment_settings_payment_method": 123,
-    "cart_payment_settings_return_url": "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
-    "cart_payment_redirect_policy": {
-      "redirect_conditions": "none",
-      "delay": 0,
-      "status_for_manual_redirection": "none",
-      "redirect_button_caption": "Text button"
-    }
-  },
-  "custom_parameters": {}
-}
-]]--
+-- {
+--   currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+--   locale = "Response language.",
+--   sandbox = true,
+--   settings = 
+--   {
+--     cart_payment_settings_ui = 
+--     {
+--       theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
+--       desktop = 
+--       {
+--         header = 
+--         {
+--           is_visible = true,
+--           visible_logo = true,
+--           visible_name = true,
+--           visible_purchase = true,
+--           type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
+--           close_button = true,
+--         },
+--       },
+--       mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
+--       user_account = 
+--       {
+--         payment_accounts = 
+--         {
+--           enable = true,
+--         },
+--         info = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--         subscriptions = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--       },
+--       header = 
+--       {
+--         visible_virtual_currency_balance = true,
+--       },
+--       mobile = 
+--       {
+--         header = 
+--         {
+--           close_button = true,
+--         },
+--       },
+--       is_prevent_external_link_open = true,
+--       is_payment_methods_list_mode = true,
+--       is_independent_windows = true,
+--       currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
+--       is_show_close_widget_warning = true,
+--       layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
+--       is_three_ds_independent_windows = true,
+--       is_cart_open_by_default = true,
+--     },
+--     cart_payment_settings_payment_method = 123,
+--     cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
+--     cart_payment_redirect_policy = 
+--     {
+--       redirect_conditions = "none",
+--       delay = 0,
+--       status_for_manual_redirection = "none",
+--       redirect_button_caption = "Text button",
+--     },
+--   },
+--   custom_parameters = 
+--   {
+--   },
+-- }
 function M.create_order_by_cart_id(project_id, cart_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -634,9 +897,18 @@ function M.create_order_by_cart_id(project_id, cart_id, body, callback, retry_po
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -651,77 +923,98 @@ end
 -- For testing purposes, use this URL: `https://sandbox-secure.xsolla.com/paystation4/?token={token}`.
 -- 
 -- Notice 
--- 
 --  As this method uses the IP to determine the user’s country and select a currency for the order, it is important to only use this method from the client side and not from the server side. Using this method from the server side may cause incorrect currency determination and affect payment methods in Pay Station. 
--- /v2/project/{project_id}/payment/cart
+-- @path /v2/project/{project_id}/payment/cart
 -- @name create_order
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param body
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "currency": "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
-  "locale": "Response language.",
-  "sandbox": true,
-  "settings": {
-    "cart_payment_settings_ui": {
-      "theme": "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
-      "desktop": {
-        "header": {
-          "is_visible": true,
-          "visible_logo": true,
-          "visible_name": true,
-          "visible_purchase": true,
-          "type": "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
-          "close_button": true
-        }
-      },
-      "mode": "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
-      "user_account": {
-        "payment_accounts": {
-          "enable": true
-        },
-        "info": {
-          "enable": true,
-          "order": 123
-        },
-        "subscriptions": {
-          "enable": true,
-          "order": 123
-        }
-      },
-      "header": {
-        "visible_virtual_currency_balance": true
-      },
-      "mobile": {
-        "header": {
-          "close_button": true
-        }
-      },
-      "is_prevent_external_link_open": true,
-      "is_payment_methods_list_mode": true,
-      "is_independent_windows": true,
-      "currency_format": "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
-      "is_show_close_widget_warning": true,
-      "layout": "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
-      "is_three_ds_independent_windows": true,
-      "is_cart_open_by_default": true
-    },
-    "cart_payment_settings_payment_method": 123,
-    "cart_payment_settings_return_url": "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
-    "cart_payment_redirect_policy": {
-      "redirect_conditions": "none",
-      "delay": 0,
-      "status_for_manual_redirection": "none",
-      "redirect_button_caption": "Text button"
-    }
-  },
-  "custom_parameters": {}
-}
-]]--
+-- {
+--   currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+--   locale = "Response language.",
+--   sandbox = true,
+--   settings = 
+--   {
+--     cart_payment_settings_ui = 
+--     {
+--       theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
+--       desktop = 
+--       {
+--         header = 
+--         {
+--           is_visible = true,
+--           visible_logo = true,
+--           visible_name = true,
+--           visible_purchase = true,
+--           type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
+--           close_button = true,
+--         },
+--       },
+--       mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
+--       user_account = 
+--       {
+--         payment_accounts = 
+--         {
+--           enable = true,
+--         },
+--         info = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--         subscriptions = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--       },
+--       header = 
+--       {
+--         visible_virtual_currency_balance = true,
+--       },
+--       mobile = 
+--       {
+--         header = 
+--         {
+--           close_button = true,
+--         },
+--       },
+--       is_prevent_external_link_open = true,
+--       is_payment_methods_list_mode = true,
+--       is_independent_windows = true,
+--       currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
+--       is_show_close_widget_warning = true,
+--       layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
+--       is_three_ds_independent_windows = true,
+--       is_cart_open_by_default = true,
+--     },
+--     cart_payment_settings_payment_method = 123,
+--     cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
+--     cart_payment_redirect_policy = 
+--     {
+--       redirect_conditions = "none",
+--       delay = 0,
+--       status_for_manual_redirection = "none",
+--       redirect_button_caption = "Text button",
+--     },
+--   },
+--   custom_parameters = 
+--   {
+--   },
+-- }
 function M.create_order(project_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -731,9 +1024,18 @@ function M.create_order(project_id, body, callback, retry_policy, cancellation_t
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -748,9 +1050,8 @@ end
 -- For testing purposes, use this URL: `https://sandbox-secure.xsolla.com/paystation4/?token={token}`.
 -- 
 -- Notice 
--- 
 --  As this method uses the IP to determine the user’s country and select a currency for the order, it is important to only use this method from the client side and not from the server side. Using this method from the server side may cause incorrect currency determination and affect payment methods in Pay Station. 
--- /v2/project/{project_id}/payment/item/{item_sku}
+-- @path /v2/project/{project_id}/payment/item/{item_sku}
 -- @name create_order_with_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
@@ -758,70 +1059,85 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "currency": "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
-  "locale": "Response language.",
-  "sandbox": true,
-  "quantity": 123,
-  "promo_code": "Redeems a code of a promo code promotion with payment.",
-  "settings": {
-    "cart_payment_settings_ui": {
-      "theme": "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
-      "desktop": {
-        "header": {
-          "is_visible": true,
-          "visible_logo": true,
-          "visible_name": true,
-          "visible_purchase": true,
-          "type": "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
-          "close_button": true
-        }
-      },
-      "mode": "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
-      "user_account": {
-        "payment_accounts": {
-          "enable": true
-        },
-        "info": {
-          "enable": true,
-          "order": 123
-        },
-        "subscriptions": {
-          "enable": true,
-          "order": 123
-        }
-      },
-      "header": {
-        "visible_virtual_currency_balance": true
-      },
-      "mobile": {
-        "header": {
-          "close_button": true
-        }
-      },
-      "is_prevent_external_link_open": true,
-      "is_payment_methods_list_mode": true,
-      "is_independent_windows": true,
-      "currency_format": "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
-      "is_show_close_widget_warning": true,
-      "layout": "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
-      "is_three_ds_independent_windows": true,
-      "is_cart_open_by_default": true
-    },
-    "cart_payment_settings_payment_method": 123,
-    "cart_payment_settings_return_url": "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
-    "cart_payment_redirect_policy": {
-      "redirect_conditions": "none",
-      "delay": 0,
-      "status_for_manual_redirection": "none",
-      "redirect_button_caption": "Text button"
-    }
-  },
-  "custom_parameters": {}
-}
-]]--
+-- {
+--   currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+--   locale = "Response language.",
+--   sandbox = true,
+--   quantity = 123,
+--   promo_code = "Redeems a code of a promo code promotion with payment.",
+--   settings = 
+--   {
+--     cart_payment_settings_ui = 
+--     {
+--       theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
+--       desktop = 
+--       {
+--         header = 
+--         {
+--           is_visible = true,
+--           visible_logo = true,
+--           visible_name = true,
+--           visible_purchase = true,
+--           type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
+--           close_button = true,
+--         },
+--       },
+--       mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
+--       user_account = 
+--       {
+--         payment_accounts = 
+--         {
+--           enable = true,
+--         },
+--         info = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--         subscriptions = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--       },
+--       header = 
+--       {
+--         visible_virtual_currency_balance = true,
+--       },
+--       mobile = 
+--       {
+--         header = 
+--         {
+--           close_button = true,
+--         },
+--       },
+--       is_prevent_external_link_open = true,
+--       is_payment_methods_list_mode = true,
+--       is_independent_windows = true,
+--       currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
+--       is_show_close_widget_warning = true,
+--       layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
+--       is_three_ds_independent_windows = true,
+--       is_cart_open_by_default = true,
+--     },
+--     cart_payment_settings_payment_method = 123,
+--     cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
+--     cart_payment_redirect_policy = 
+--     {
+--       redirect_conditions = "none",
+--       delay = 0,
+--       status_for_manual_redirection = "none",
+--       redirect_button_caption = "Text button",
+--     },
+--   },
+--   custom_parameters = 
+--   {
+--   },
+-- }
 function M.create_order_with_item(project_id, item_sku, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -833,84 +1149,110 @@ function M.create_order_with_item(project_id, item_sku, body, callback, retry_po
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Create order with free cart
 -- Creates an order with all items from the free cart. The created order will get a `done` order status.
--- /v2/project/{project_id}/free/cart
+-- @path /v2/project/{project_id}/free/cart
 -- @name create_free_order
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param body
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "currency": "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
-  "locale": "Response language.",
-  "sandbox": true,
-  "settings": {
-    "cart_payment_settings_ui": {
-      "theme": "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
-      "desktop": {
-        "header": {
-          "is_visible": true,
-          "visible_logo": true,
-          "visible_name": true,
-          "visible_purchase": true,
-          "type": "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
-          "close_button": true
-        }
-      },
-      "mode": "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
-      "user_account": {
-        "payment_accounts": {
-          "enable": true
-        },
-        "info": {
-          "enable": true,
-          "order": 123
-        },
-        "subscriptions": {
-          "enable": true,
-          "order": 123
-        }
-      },
-      "header": {
-        "visible_virtual_currency_balance": true
-      },
-      "mobile": {
-        "header": {
-          "close_button": true
-        }
-      },
-      "is_prevent_external_link_open": true,
-      "is_payment_methods_list_mode": true,
-      "is_independent_windows": true,
-      "currency_format": "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
-      "is_show_close_widget_warning": true,
-      "layout": "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
-      "is_three_ds_independent_windows": true,
-      "is_cart_open_by_default": true
-    },
-    "cart_payment_settings_payment_method": 123,
-    "cart_payment_settings_return_url": "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
-    "cart_payment_redirect_policy": {
-      "redirect_conditions": "none",
-      "delay": 0,
-      "status_for_manual_redirection": "none",
-      "redirect_button_caption": "Text button"
-    }
-  },
-  "custom_parameters": {}
-}
-]]--
+-- {
+--   currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+--   locale = "Response language.",
+--   sandbox = true,
+--   settings = 
+--   {
+--     cart_payment_settings_ui = 
+--     {
+--       theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
+--       desktop = 
+--       {
+--         header = 
+--         {
+--           is_visible = true,
+--           visible_logo = true,
+--           visible_name = true,
+--           visible_purchase = true,
+--           type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
+--           close_button = true,
+--         },
+--       },
+--       mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
+--       user_account = 
+--       {
+--         payment_accounts = 
+--         {
+--           enable = true,
+--         },
+--         info = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--         subscriptions = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--       },
+--       header = 
+--       {
+--         visible_virtual_currency_balance = true,
+--       },
+--       mobile = 
+--       {
+--         header = 
+--         {
+--           close_button = true,
+--         },
+--       },
+--       is_prevent_external_link_open = true,
+--       is_payment_methods_list_mode = true,
+--       is_independent_windows = true,
+--       currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
+--       is_show_close_widget_warning = true,
+--       layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
+--       is_three_ds_independent_windows = true,
+--       is_cart_open_by_default = true,
+--     },
+--     cart_payment_settings_payment_method = 123,
+--     cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
+--     cart_payment_redirect_policy = 
+--     {
+--       redirect_conditions = "none",
+--       delay = 0,
+--       status_for_manual_redirection = "none",
+--       redirect_button_caption = "Text button",
+--     },
+--   },
+--   custom_parameters = 
+--   {
+--   },
+-- }
 function M.create_free_order(project_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -920,16 +1262,25 @@ function M.create_free_order(project_id, body, callback, retry_policy, cancellat
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Create order with particular free cart
 -- Creates an order with all items from the particular free cart. The created order will get a `done` order status.
--- /v2/project/{project_id}/free/cart/{cart_id}
+-- @path /v2/project/{project_id}/free/cart/{cart_id}
 -- @name create_free_order_by_cart_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param cart_id (REQUIRED) Cart ID.
@@ -937,68 +1288,90 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "currency": "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
-  "locale": "Response language.",
-  "sandbox": true,
-  "settings": {
-    "cart_payment_settings_ui": {
-      "theme": "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
-      "desktop": {
-        "header": {
-          "is_visible": true,
-          "visible_logo": true,
-          "visible_name": true,
-          "visible_purchase": true,
-          "type": "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
-          "close_button": true
-        }
-      },
-      "mode": "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
-      "user_account": {
-        "payment_accounts": {
-          "enable": true
-        },
-        "info": {
-          "enable": true,
-          "order": 123
-        },
-        "subscriptions": {
-          "enable": true,
-          "order": 123
-        }
-      },
-      "header": {
-        "visible_virtual_currency_balance": true
-      },
-      "mobile": {
-        "header": {
-          "close_button": true
-        }
-      },
-      "is_prevent_external_link_open": true,
-      "is_payment_methods_list_mode": true,
-      "is_independent_windows": true,
-      "currency_format": "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
-      "is_show_close_widget_warning": true,
-      "layout": "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
-      "is_three_ds_independent_windows": true,
-      "is_cart_open_by_default": true
-    },
-    "cart_payment_settings_payment_method": 123,
-    "cart_payment_settings_return_url": "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
-    "cart_payment_redirect_policy": {
-      "redirect_conditions": "none",
-      "delay": 0,
-      "status_for_manual_redirection": "none",
-      "redirect_button_caption": "Text button"
-    }
-  },
-  "custom_parameters": {}
-}
-]]--
+-- {
+--   currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+--   locale = "Response language.",
+--   sandbox = true,
+--   settings = 
+--   {
+--     cart_payment_settings_ui = 
+--     {
+--       theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
+--       desktop = 
+--       {
+--         header = 
+--         {
+--           is_visible = true,
+--           visible_logo = true,
+--           visible_name = true,
+--           visible_purchase = true,
+--           type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
+--           close_button = true,
+--         },
+--       },
+--       mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
+--       user_account = 
+--       {
+--         payment_accounts = 
+--         {
+--           enable = true,
+--         },
+--         info = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--         subscriptions = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--       },
+--       header = 
+--       {
+--         visible_virtual_currency_balance = true,
+--       },
+--       mobile = 
+--       {
+--         header = 
+--         {
+--           close_button = true,
+--         },
+--       },
+--       is_prevent_external_link_open = true,
+--       is_payment_methods_list_mode = true,
+--       is_independent_windows = true,
+--       currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
+--       is_show_close_widget_warning = true,
+--       layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
+--       is_three_ds_independent_windows = true,
+--       is_cart_open_by_default = true,
+--     },
+--     cart_payment_settings_payment_method = 123,
+--     cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
+--     cart_payment_redirect_policy = 
+--     {
+--       redirect_conditions = "none",
+--       delay = 0,
+--       status_for_manual_redirection = "none",
+--       redirect_button_caption = "Text button",
+--     },
+--   },
+--   custom_parameters = 
+--   {
+--   },
+-- }
 function M.create_free_order_by_cart_id(project_id, cart_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -1010,16 +1383,25 @@ function M.create_free_order_by_cart_id(project_id, cart_id, body, callback, ret
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Create order with specified free item
 -- Creates an order with a specified free item. The created order will get a `done` order status.
--- /v2/project/{project_id}/free/item/{item_sku}
+-- @path /v2/project/{project_id}/free/item/{item_sku}
 -- @name create_free_order_with_item
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
@@ -1027,70 +1409,85 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "currency": "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
-  "locale": "Response language.",
-  "sandbox": true,
-  "quantity": 123,
-  "promo_code": "Redeems a code of a promo code promotion with payment.",
-  "settings": {
-    "cart_payment_settings_ui": {
-      "theme": "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
-      "desktop": {
-        "header": {
-          "is_visible": true,
-          "visible_logo": true,
-          "visible_name": true,
-          "visible_purchase": true,
-          "type": "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
-          "close_button": true
-        }
-      },
-      "mode": "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
-      "user_account": {
-        "payment_accounts": {
-          "enable": true
-        },
-        "info": {
-          "enable": true,
-          "order": 123
-        },
-        "subscriptions": {
-          "enable": true,
-          "order": 123
-        }
-      },
-      "header": {
-        "visible_virtual_currency_balance": true
-      },
-      "mobile": {
-        "header": {
-          "close_button": true
-        }
-      },
-      "is_prevent_external_link_open": true,
-      "is_payment_methods_list_mode": true,
-      "is_independent_windows": true,
-      "currency_format": "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
-      "is_show_close_widget_warning": true,
-      "layout": "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
-      "is_three_ds_independent_windows": true,
-      "is_cart_open_by_default": true
-    },
-    "cart_payment_settings_payment_method": 123,
-    "cart_payment_settings_return_url": "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
-    "cart_payment_redirect_policy": {
-      "redirect_conditions": "none",
-      "delay": 0,
-      "status_for_manual_redirection": "none",
-      "redirect_button_caption": "Text button"
-    }
-  },
-  "custom_parameters": {}
-}
-]]--
+-- {
+--   currency = "Order price currency. Three-letter currency code per [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Check the documentation for detailed information about [currencies supported by Xsolla](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/).",
+--   locale = "Response language.",
+--   sandbox = true,
+--   quantity = 123,
+--   promo_code = "Redeems a code of a promo code promotion with payment.",
+--   settings = 
+--   {
+--     cart_payment_settings_ui = 
+--     {
+--       theme = "Payment UI theme. Can be `63295a9a2e47fab76f7708e1` for the light theme (default) or `63295aab2e47fab76f7708e3` for the dark theme. You can also [create a custom theme](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_in_token) and pass its ID in this parameter.",
+--       desktop = 
+--       {
+--         header = 
+--         {
+--           is_visible = true,
+--           visible_logo = true,
+--           visible_name = true,
+--           visible_purchase = true,
+--           type = "How to show the header. Can be `compact` (hides project name and user ID) or `normal` (default).",
+--           close_button = true,
+--         },
+--       },
+--       mode = "Interface mode in payment UI. Can be `user_account` only. The header contains only the account navigation menu, and the user cannot select a product or make a payment. This mode is only available on the desktop.",
+--       user_account = 
+--       {
+--         payment_accounts = 
+--         {
+--           enable = true,
+--         },
+--         info = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--         subscriptions = 
+--         {
+--           enable = true,
+--           order = 123,
+--         },
+--       },
+--       header = 
+--       {
+--         visible_virtual_currency_balance = true,
+--       },
+--       mobile = 
+--       {
+--         header = 
+--         {
+--           close_button = true,
+--         },
+--       },
+--       is_prevent_external_link_open = true,
+--       is_payment_methods_list_mode = true,
+--       is_independent_windows = true,
+--       currency_format = "Set to `code` to display a three-letter [ISO 4217](https://developers.xsolla.com/doc/pay-station/references/supported-currencies/) currency code in the payment UI. The currency symbol is displayed instead of the three-letter currency code by default.",
+--       is_show_close_widget_warning = true,
+--       layout = "Location of the main elements of the payment UI. You can open the payment UI inside your game and/or swap the columns with information about an order and payment methods. Refer to the [customization instructions](https://developers.xsolla.com/doc/pay-station/features/ui-theme-customization/#pay_station_ui_theme_customization_layout) for detailed information.",
+--       is_three_ds_independent_windows = true,
+--       is_cart_open_by_default = true,
+--     },
+--     cart_payment_settings_payment_method = 123,
+--     cart_payment_settings_return_url = "Page to redirect the user to after payment. Parameters `user_id`, `foreigninvoice`, `invoice_id` and `status` will be automatically added to the link.",
+--     cart_payment_redirect_policy = 
+--     {
+--       redirect_conditions = "none",
+--       delay = 0,
+--       status_for_manual_redirection = "none",
+--       redirect_button_caption = "Text button",
+--     },
+--   },
+--   custom_parameters = 
+--   {
+--   },
+-- }
 function M.create_free_order_with_item(project_id, item_sku, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -1102,22 +1499,36 @@ function M.create_free_order_with_item(project_id, item_sku, body, callback, ret
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Get order
 -- Retrieves a specified order.
--- /v2/project/{project_id}/order/{order_id}
+-- @path /v2/project/{project_id}/order/{order_id}
 -- @name get_order
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param order_id (REQUIRED) Order ID.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_order(project_id, order_id, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(order_id)
@@ -1130,19 +1541,30 @@ function M.get_order(project_id, order_id, callback, retry_policy, cancellation_
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Get list of upsell items in project
 -- Gets a list of upsell items in a project if they have already been set up.
--- /v2/project/{project_id}/items/upsell
+-- @path /v2/project/{project_id}/items/upsell
 -- @name get_upsell_for_project_client
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_upsell_for_project_client(project_id, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -1153,7 +1575,10 @@ function M.get_upsell_for_project_client(project_id, callback, retry_policy, can
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1162,13 +1587,11 @@ end
 -- Gets a games list for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/game
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/game
 -- @name get_games_list
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param limit Limit for the number of elements on the page.
@@ -1181,6 +1604,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_games_list(project_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -1198,7 +1624,10 @@ function M.get_games_list(project_id, limit, offset, locale, additional_fields, 
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1207,13 +1636,11 @@ end
 -- Gets a games list from the specified group for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/game/group/{external_id}
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/game/group/{external_id}
 -- @name get_games_group
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Group external ID.
@@ -1227,6 +1654,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_games_group(project_id, external_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(external_id)
@@ -1246,7 +1676,10 @@ function M.get_games_group(project_id, external_id, limit, offset, locale, addit
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1255,9 +1688,8 @@ end
 -- Gets a game for the catalog.
 -- 
 -- Note
--- 
 -- This endpoint, accessible without authorization, returns generic data. However, authorization enriches the response with user-specific details for a personalized result, such as available user limits and promotions.
--- /v2/project/{project_id}/items/game/sku/{item_sku}
+-- @path /v2/project/{project_id}/items/game/sku/{item_sku}
 -- @name get_game_by_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
@@ -1269,6 +1701,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_game_by_sku(project_id, item_sku, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(item_sku)
@@ -1286,7 +1721,10 @@ function M.get_game_by_sku(project_id, item_sku, locale, additional_fields, coun
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1295,9 +1733,8 @@ end
 -- Gets a game key for the catalog.
 -- 
 -- Note
--- 
 -- This endpoint, accessible without authorization, returns generic data. However, authorization enriches the response with user-specific details for a personalized result, such as available user limits and promotions.
--- /v2/project/{project_id}/items/game/key/sku/{item_sku}
+-- @path /v2/project/{project_id}/items/game/key/sku/{item_sku}
 -- @name get_game_key_by_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
@@ -1309,6 +1746,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_game_key_by_sku(project_id, item_sku, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(item_sku)
@@ -1326,7 +1766,10 @@ function M.get_game_key_by_sku(project_id, item_sku, locale, additional_fields, 
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1335,13 +1778,11 @@ end
 -- Gets a game key list from the specified group for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/game/key/group/{external_id}
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/game/key/group/{external_id}
 -- @name get_game_keys_group
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Group external ID.
@@ -1355,6 +1796,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_game_keys_group(project_id, external_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(external_id)
@@ -1374,14 +1818,17 @@ function M.get_game_keys_group(project_id, external_id, limit, offset, locale, a
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Get DRM list
 -- Gets the list of available DRMs.
--- /v2/project/{project_id}/items/game/drm
+-- @path /v2/project/{project_id}/items/game/drm
 -- @name get_drm_list
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param callback
@@ -1397,7 +1844,9 @@ function M.get_drm_list(project_id, callback, retry_policy, cancellation_token)
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1406,9 +1855,8 @@ end
 -- Get the list of games owned by the user. The response will contain an array of games owned by a particular user.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields.
--- /v2/project/{project_id}/entitlement
+-- @path /v2/project/{project_id}/entitlement
 -- @name get_user_games
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param limit Limit for the number of elements on the page.
@@ -1418,6 +1866,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_user_games(project_id, limit, offset, sandbox, additional_fields, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -1432,7 +1883,10 @@ function M.get_user_games(project_id, limit, offset, sandbox, additional_fields,
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1441,22 +1895,22 @@ end
 -- Grants entitlement by a provided game code.
 -- 
 -- Attention
--- 
 -- You can redeem codes only for the DRM-free platform.
--- /v2/project/{project_id}/entitlement/redeem
+-- @path /v2/project/{project_id}/entitlement/redeem
 -- @name redeem_game_pin_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param body
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "code": "AAAA-BBBB-CCCC-DDDD",
-  "sandbox": false
-}
-]]--
+-- {
+--   code = "AAAA-BBBB-CCCC-DDDD",
+--   sandbox = false,
+-- }
 function M.redeem_game_pin_code(project_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -1466,9 +1920,13 @@ function M.redeem_game_pin_code(project_id, body, callback, retry_policy, cancel
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1477,13 +1935,11 @@ end
 -- Gets a physical items list for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/physical_good
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/physical_good
 -- @name get_physical_goods_list
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param limit Limit for the number of elements on the page.
@@ -1494,6 +1950,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_physical_goods_list(project_id, limit, offset, locale, additional_fields, country, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -1509,7 +1968,10 @@ function M.get_physical_goods_list(project_id, limit, offset, locale, additional
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1519,7 +1981,7 @@ end
 -- 
 -- Aliases for this endpoint:
 -- * /v2/project/{project_id}/admin/items/physical_good/id/{item_id}
--- /v2/project/{project_id}/admin/items/physical_good/sku/{item_sku}
+-- @path /v2/project/{project_id}/admin/items/physical_good/sku/{item_sku}
 -- @name admin_update_physical_item_by_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
@@ -1527,145 +1989,183 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note Xsolla API uses basic access authentication. All requests to API must
+-- contain the `Authorization: Basic `
+-- header, where `your_authorization_basic_key` is the `project_id:api_key`
+-- pair encoded according to the Base64 standard.
+-- 
+-- You can use `merchant_id` instead of `project_id` if you need. It doesn&#x27;t affect functionality.
+-- 
+-- Go to [Publisher Account](https://publisher.xsolla.com/) to find values of the parameters:
+-- 
+-- * `merchant_id` is shown:
+--   * In the **Company settings &gt; Company** section
+--   * In the URL in the browser address bar on any Publisher Account page. The URL has the following format: `https://publisher.xsolla.com/`.
+-- * `api_key` is shown in Publisher Account only once when it is created and must be stored on your side. You can create a new key in the following section:
+--   * **Company settings &gt; API keys**
+--   * **Project settings &gt; API keys**
+-- * `project_id` is shown:
+--   * In Publisher Account next to the name of the project.
+--   * In the URL in the browser address bar when working on project in Publisher Account. The URL has the following format: `https://publisher.xsolla.com//projects/`.
+-- 
+-- For more information about working with API keys, see the [API reference](https://developers.xsolla.com/api/getting-started/#api_keys_overview).
 -- @example Request body example
---[[
-{
-  "sku": "",
-  "name": {
-    "en": "Item's name.",
-    "ar": null,
-    "bg": null,
-    "cn": null,
-    "cs": null,
-    "de": "Name des Artikels.",
-    "es": "Nombre del art\u00edculo.",
-    "fr": "Nom de l'\u00e9l\u00e9ment.",
-    "he": null,
-    "it": "Nome dell'elemento.",
-    "ja": "\u8cb7\u3044\u7269\u306e\u540d\u524d\u3002",
-    "ko": null,
-    "pl": null,
-    "pt": null,
-    "ro": null,
-    "ru": null,
-    "th": null,
-    "tr": null,
-    "tw": null,
-    "vi": null
-  },
-  "description": {
-    "en": "Item's description.",
-    "ar": null,
-    "bg": null,
-    "cn": null,
-    "cs": null,
-    "de": "Artikelbeschreibung.",
-    "es": "Descripci\u00f3n del art\u00edculo.",
-    "fr": "Description de l'article.",
-    "he": null,
-    "it": "Descrizione dell'oggetto.",
-    "ja": "\u8cb7\u3044\u7269\u306e\u8aac\u660e\u3002",
-    "ko": null,
-    "pl": null,
-    "pt": null,
-    "ro": null,
-    "ru": null,
-    "th": null,
-    "tr": null,
-    "tw": null,
-    "vi": null
-  },
-  "long_description": {
-    "en": "Long description of item.",
-    "ar": null,
-    "bg": null,
-    "cn": null,
-    "cs": null,
-    "de": "Lange Beschreibung des Artikels.",
-    "es": "Descripci\u00f3n larga del art\u00edculo.",
-    "fr": "Description longue de l'article.",
-    "he": null,
-    "it": "Descrizione lunga dell'articolo.",
-    "ja": "\u30a2\u30a4\u30c6\u30e0\u306e\u9577\u3044\u8aac\u660e\u3002",
-    "ko": null,
-    "pl": null,
-    "pt": null,
-    "ro": null,
-    "ru": null,
-    "th": null,
-    "tr": null,
-    "tw": null,
-    "vi": null
-  },
-  "image_url": "",
-  "media_list": [
-    ""
-  ],
-  "groups": [
-    ""
-  ],
-  "attributes": [
-    {
-      "admin_attribute_external_id": "attribute_1",
-      "admin_attribute_name": {},
-      "values": [
-        {
-          "value_external_id": "attribute_value",
-          "value_name": {}
-        }
-      ]
-    }
-  ],
-  "prices": [
-    {
-      "currency": "USD",
-      "amount": 123.456,
-      "is_default": true,
-      "is_enabled": true,
-      "country_iso": "US"
-    }
-  ],
-  "vc_prices": [
-    {
-      "virtual_items_currency_schemas_sku": "bundle_1",
-      "amount": 123,
-      "is_default": true,
-      "is_enabled": true
-    }
-  ],
-  "is_enabled": true,
-  "is_deleted": true,
-  "is_free": false,
-  "order": 123.456,
-  "tax_categories": [
-    ""
-  ],
-  "pre_order": {
-    "release_date": "",
-    "is_enabled": true,
-    "description": ""
-  },
-  "regions": [
-    {
-      "id": 1
-    }
-  ],
-  "weight": {
-    "grams": "874.5",
-    "ounces": "3"
-  },
-  "limits": {
-    "per_user": 123,
-    "per_item": 10,
-    "recurrent_schedule": {
-      "per_user": {
-        "interval_type": "Recurrent refresh period.",
-        "time": "02:00:00+03:00"
-      }
-    }
-  }
-}
-]]--
+-- {
+--   sku = "",
+--   name = 
+--   {
+--     en = "Item's name.",
+--     ar = nil,
+--     bg = nil,
+--     cn = nil,
+--     cs = nil,
+--     de = "Name des Artikels.",
+--     es = "Nombre del artículo.",
+--     fr = "Nom de l'élément.",
+--     he = nil,
+--     it = "Nome dell'elemento.",
+--     ja = "買い物の名前。",
+--     ko = nil,
+--     pl = nil,
+--     pt = nil,
+--     ro = nil,
+--     ru = nil,
+--     th = nil,
+--     tr = nil,
+--     tw = nil,
+--     vi = nil,
+--   },
+--   description = 
+--   {
+--     en = "Item's description.",
+--     ar = nil,
+--     bg = nil,
+--     cn = nil,
+--     cs = nil,
+--     de = "Artikelbeschreibung.",
+--     es = "Descripción del artículo.",
+--     fr = "Description de l'article.",
+--     he = nil,
+--     it = "Descrizione dell'oggetto.",
+--     ja = "買い物の説明。",
+--     ko = nil,
+--     pl = nil,
+--     pt = nil,
+--     ro = nil,
+--     ru = nil,
+--     th = nil,
+--     tr = nil,
+--     tw = nil,
+--     vi = nil,
+--   },
+--   long_description = 
+--   {
+--     en = "Long description of item.",
+--     ar = nil,
+--     bg = nil,
+--     cn = nil,
+--     cs = nil,
+--     de = "Lange Beschreibung des Artikels.",
+--     es = "Descripción larga del artículo.",
+--     fr = "Description longue de l'article.",
+--     he = nil,
+--     it = "Descrizione lunga dell'articolo.",
+--     ja = "アイテムの長い説明。",
+--     ko = nil,
+--     pl = nil,
+--     pt = nil,
+--     ro = nil,
+--     ru = nil,
+--     th = nil,
+--     tr = nil,
+--     tw = nil,
+--     vi = nil,
+--   },
+--   image_url = "",
+--   media_list = 
+--   {
+--     "",
+--   },
+--   groups = 
+--   {
+--     "",
+--   },
+--   attributes = 
+--   {
+--     {
+--       admin_attribute_external_id = "attribute_1",
+--       admin_attribute_name = 
+--       {
+--       },
+--       values = 
+--       {
+--         {
+--           value_external_id = "attribute_value",
+--           value_name = 
+--           {
+--           },
+--         },
+--       },
+--     },
+--   },
+--   prices = 
+--   {
+--     {
+--       currency = "USD",
+--       amount = 123.456,
+--       is_default = true,
+--       is_enabled = true,
+--       country_iso = "US",
+--     },
+--   },
+--   vc_prices = 
+--   {
+--     {
+--       virtual_items_currency_schemas_sku = "bundle_1",
+--       amount = 123,
+--       is_default = true,
+--       is_enabled = true,
+--     },
+--   },
+--   is_enabled = true,
+--   is_deleted = true,
+--   is_free = false,
+--   order = 123.456,
+--   tax_categories = 
+--   {
+--     "",
+--   },
+--   pre_order = 
+--   {
+--     release_date = "",
+--     is_enabled = true,
+--     description = "",
+--   },
+--   regions = 
+--   {
+--     {
+--       id = 1,
+--     },
+--   },
+--   weight = 
+--   {
+--     grams = "874.5",
+--     ounces = "3",
+--   },
+--   limits = 
+--   {
+--     per_user = 123,
+--     per_item = 10,
+--     recurrent_schedule = 
+--     {
+--       per_user = 
+--       {
+--         interval_type = "Recurrent refresh period.",
+--         time = "02:00:00+03:00",
+--       },
+--     },
+--   },
+-- }
 function M.admin_update_physical_item_by_sku(project_id, item_sku, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -1677,29 +2177,36 @@ function M.admin_update_physical_item_by_sku(project_id, item_sku, body, callbac
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    headers["Authorization"] = authorization.basic
+
+    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Redeem coupon code
 -- Redeems a coupon code. The user gets a bonus after a coupon is redeemed.
--- /v2/project/{project_id}/coupon/redeem
+-- @path /v2/project/{project_id}/coupon/redeem
 -- @name redeem_coupon
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param body
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "coupon_code": "WINTER2021",
-  "selected_unit_items": {}
-}
-]]--
+-- {
+--   coupon_code = "WINTER2021",
+--   selected_unit_items = 
+--   {
+--   },
+-- }
 function M.redeem_coupon(project_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -1709,9 +2216,13 @@ function M.redeem_coupon(project_id, body, callback, retry_policy, cancellation_
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1720,13 +2231,16 @@ end
 -- Gets coupons rewards by its code.
 -- Can be used to allow users to choose one of many items as a bonus.
 -- The usual case is choosing a DRM if the coupon contains a game as a bonus (`type=unit`).
--- /v2/project/{project_id}/coupon/code/{coupon_code}/rewards
+-- @path /v2/project/{project_id}/coupon/code/{coupon_code}/rewards
 -- @name get_coupon_rewards_by_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param coupon_code (REQUIRED) Unique case sensitive code. Contains letters and numbers.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_coupon_rewards_by_code(project_id, coupon_code, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(coupon_code)
@@ -1739,7 +2253,10 @@ function M.get_coupon_rewards_by_code(project_id, coupon_code, callback, retry_p
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1747,23 +2264,34 @@ end
 --- Redeem promo code
 -- Redeems a code of promo code promotion.
 -- After redeeming a promo code, the user will get free items and/or the price of the cart and/or particular items will be decreased.
--- /v2/project/{project_id}/promocode/redeem
+-- @path /v2/project/{project_id}/promocode/redeem
 -- @name redeem_promo_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param body
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "coupon_code": "SUMMER2021",
-  "cart": {
-    "id": "Cart ID."
-  },
-  "selected_unit_items": {}
-}
-]]--
+-- {
+--   coupon_code = "SUMMER2021",
+--   cart = 
+--   {
+--     id = "Cart ID.",
+--   },
+--   selected_unit_items = 
+--   {
+--   },
+-- }
 function M.redeem_promo_code(project_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -1773,9 +2301,18 @@ function M.redeem_promo_code(project_id, body, callback, retry_policy, cancellat
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1783,21 +2320,30 @@ end
 --- Remove promo code from cart
 -- Removes a promo code from a cart.
 -- After the promo code is removed, the total price of all items in the cart will be recalculated without bonuses and discounts provided by a promo code.
--- /v2/project/{project_id}/promocode/remove
+-- @path /v2/project/{project_id}/promocode/remove
 -- @name remove_cart_promo_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param body
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note When selling a cart with games, you can [call the endpoint without authorization](/doc/buy-button/how-to/set-up-authentication/#guides_buy_button_selling_items_not_authenticated_users).
+-- 
+-- To do this:
+-- 
+-- * Add a unique identifier to the `x-unauthorized-id` parameter in the header for games.
+-- * Add user’s email to the `x-user` parameter (Base64 encoded) in the header for games.
+-- 
+-- By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "cart": {
-    "id": "Cart ID."
-  }
-}
-]]--
+-- {
+--   cart = 
+--   {
+--     id = "Cart ID.",
+--   },
+-- }
 function M.remove_cart_promo_code(project_id, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -1807,9 +2353,18 @@ function M.remove_cart_promo_code(project_id, body, callback, retry_policy, canc
 
     local query_params = {}
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    if authorization.x_unauthorized_id then
+        headers["x-unauthorized-id"] = authorization.x_unauthorized_id
+        headers["x-user"] = authorization.x_user
+    else
+        headers["Authorization"] = authorization.bearer
+    end
+
+    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1818,13 +2373,16 @@ end
 -- Gets promo code rewards by its code.
 -- Can be used to allow users to choose one of many items as a bonus.
 -- The usual case is choosing a DRM if the promo code contains a game as a bonus (`type=unit`).
--- /v2/project/{project_id}/promocode/code/{promocode_code}/rewards
+-- @path /v2/project/{project_id}/promocode/code/{promocode_code}/rewards
 -- @name get_promo_code_rewards_by_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param promocode_code (REQUIRED) Unique case sensitive code. Contains letters and numbers.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_promo_code_rewards_by_code(project_id, promocode_code, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(promocode_code)
@@ -1837,20 +2395,26 @@ function M.get_promo_code_rewards_by_code(project_id, promocode_code, callback, 
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Verify promotion code
 -- Determines if the code is a promo code or coupon code and if the user can apply it.
--- /v2/project/{project_id}/promotion/code/{code}/verify
+-- @path /v2/project/{project_id}/promotion/code/{code}/verify
 -- @name verify_promotion_code
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param code (REQUIRED) Unique case-sensitive code. Contains letters and numbers.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.verify_promotion_code(project_id, code, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(code)
@@ -1863,7 +2427,10 @@ function M.verify_promotion_code(project_id, code, callback, retry_policy, cance
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1872,13 +2439,11 @@ end
 -- Gets a virtual items list for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/virtual_items
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/virtual_items
 -- @name get_virtual_items
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param limit Limit for the number of elements on the page.
@@ -1891,6 +2456,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_virtual_items(project_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -1908,7 +2476,10 @@ function M.get_virtual_items(project_id, limit, offset, locale, additional_field
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1916,9 +2487,8 @@ end
 --- Get virtual item by SKU
 -- Gets a virtual item by SKU for building a catalog.
 -- Note
--- 
 -- This endpoint, accessible without authorization, returns generic data. However, authorization enriches the response with user-specific details for a personalized result, such as available user limits and promotions.
--- /v2/project/{project_id}/items/virtual_items/sku/{item_sku}
+-- @path /v2/project/{project_id}/items/virtual_items/sku/{item_sku}
 -- @name get_virtual_items_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
@@ -1928,6 +2498,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_virtual_items_sku(project_id, item_sku, locale, country, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(item_sku)
@@ -1943,7 +2516,10 @@ function M.get_virtual_items_sku(project_id, item_sku, locale, country, show_ina
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1952,13 +2528,11 @@ end
 -- Gets a list of all virtual items for searching on client-side.
 -- 
 -- Attention
--- 
 -- Returns only item SKU, name, groups and description 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/virtual_items/all
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/virtual_items/all
 -- @name get_all_virtual_items
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param locale Response language. Two-letter lowercase language code per ISO 639-1.
@@ -1966,6 +2540,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_all_virtual_items(project_id, locale, promo_code, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -1978,7 +2555,10 @@ function M.get_all_virtual_items(project_id, locale, promo_code, callback, retry
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -1987,13 +2567,11 @@ end
 -- Gets a virtual currency list for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/virtual_currency
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/virtual_currency
 -- @name get_virtual_currency
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param limit Limit for the number of elements on the page.
@@ -2006,6 +2584,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_virtual_currency(project_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -2023,7 +2604,10 @@ function M.get_virtual_currency(project_id, limit, offset, locale, additional_fi
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2031,9 +2615,8 @@ end
 --- Get virtual currency by SKU
 -- Gets a virtual currency by SKU for building a catalog.
 -- Note
--- 
 -- This endpoint, accessible without authorization, returns generic data. However, authorization enriches the response with user-specific details for a personalized result, such as available user limits and promotions.
--- /v2/project/{project_id}/items/virtual_currency/sku/{virtual_currency_sku}
+-- @path /v2/project/{project_id}/items/virtual_currency/sku/{virtual_currency_sku}
 -- @name get_virtual_currency_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param virtual_currency_sku (REQUIRED) Virtual currency SKU.
@@ -2043,6 +2626,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_virtual_currency_sku(project_id, virtual_currency_sku, locale, country, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(virtual_currency_sku)
@@ -2058,7 +2644,10 @@ function M.get_virtual_currency_sku(project_id, virtual_currency_sku, locale, co
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2067,13 +2656,11 @@ end
 -- Gets a virtual currency packages list for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/virtual_currency/package
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/virtual_currency/package
 -- @name get_virtual_currency_package
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param limit Limit for the number of elements on the page.
@@ -2086,6 +2673,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_virtual_currency_package(project_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -2103,7 +2693,10 @@ function M.get_virtual_currency_package(project_id, limit, offset, locale, addit
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2111,9 +2704,8 @@ end
 --- Get virtual currency package by SKU
 -- Gets a virtual currency packages by SKU for building a catalog.
 -- Note
--- 
 -- This endpoint, accessible without authorization, returns generic data. However, authorization enriches the response with user-specific details for a personalized result, such as available user limits and promotions.
--- /v2/project/{project_id}/items/virtual_currency/package/sku/{virtual_currency_package_sku}
+-- @path /v2/project/{project_id}/items/virtual_currency/package/sku/{virtual_currency_package_sku}
 -- @name get_virtual_currency_package_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param virtual_currency_package_sku (REQUIRED) Virtual currency package SKU.
@@ -2123,6 +2715,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_virtual_currency_package_sku(project_id, virtual_currency_package_sku, locale, country, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(virtual_currency_package_sku)
@@ -2138,7 +2733,10 @@ function M.get_virtual_currency_package_sku(project_id, virtual_currency_package
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2147,12 +2745,10 @@ end
 -- Gets an items list from the specified group for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- This endpoint, accessible without authorization, returns generic data. However, authorization enriches the response with user-specific details for a personalized result, such as available user limits and promotions.
--- /v2/project/{project_id}/items/virtual_items/group/{external_id}
+-- @path /v2/project/{project_id}/items/virtual_items/group/{external_id}
 -- @name get_virtual_items_group
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Group external ID.
@@ -2166,6 +2762,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_virtual_items_group(project_id, external_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(external_id)
@@ -2185,14 +2784,17 @@ function M.get_virtual_items_group(project_id, external_id, limit, offset, local
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Get items groups list
 -- Gets an items groups list for building a catalog.
--- /v2/project/{project_id}/items/groups
+-- @path /v2/project/{project_id}/items/groups
 -- @name get_item_groups
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param promo_code Unique case sensitive code. Contains letters and numbers.
@@ -2210,14 +2812,16 @@ function M.get_item_groups(project_id, promo_code, callback, retry_policy, cance
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Create order with specified item purchased by virtual currency
 -- Creates item purchase using virtual currency.
--- /v2/project/{project_id}/payment/item/{item_sku}/virtual/{virtual_currency_sku}
+-- @path /v2/project/{project_id}/payment/item/{item_sku}/virtual/{virtual_currency_sku}
 -- @name create_order_with_item_for_virtual_currency
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_sku (REQUIRED) Item SKU.
@@ -2227,12 +2831,15 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 -- @example Request body example
---[[
-{
-  "custom_parameters": {}
-}
-]]--
+-- {
+--   custom_parameters = 
+--   {
+--   },
+-- }
 function M.create_order_with_item_for_virtual_currency(project_id, item_sku, virtual_currency_sku, platform, body, callback, retry_policy, cancellation_token)
     assert(body)
     assert(project_id)
@@ -2247,9 +2854,13 @@ function M.create_order_with_item_for_virtual_currency(project_id, item_sku, vir
     local query_params = {}
     query_params["platform"] = platform
 
-    local post_data = body
+    local post_data = json.encode(body)
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Content-Type"] = "application/json"
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2258,13 +2869,11 @@ end
 -- Gets a sellable items list for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items
 -- @name get_sellable_items
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param limit Limit for the number of elements on the page.
@@ -2277,6 +2886,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_sellable_items(project_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -2294,7 +2906,10 @@ function M.get_sellable_items(project_id, limit, offset, locale, additional_fiel
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2302,9 +2917,8 @@ end
 --- Get sellable item by ID
 -- Gets a sellable item by its ID.
 -- Note
--- 
 -- This endpoint, accessible without authorization, returns generic data. However, authorization enriches the response with user-specific details for a personalized result, such as available user limits and promotions.
--- /v2/project/{project_id}/items/id/{item_id}
+-- @path /v2/project/{project_id}/items/id/{item_id}
 -- @name get_sellable_item_by_id
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param item_id (REQUIRED) Item ID.
@@ -2313,6 +2927,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_sellable_item_by_id(project_id, item_id, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(item_id)
@@ -2327,7 +2944,10 @@ function M.get_sellable_item_by_id(project_id, item_id, promo_code, show_inactiv
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2335,9 +2955,8 @@ end
 --- Get sellable item by SKU
 -- Gets a sellable item by SKU for building a catalog.
 -- Note
--- 
 -- This endpoint, accessible without authorization, returns generic data. However, authorization enriches the response with user-specific details for a personalized result, such as available user limits and promotions.
--- /v2/project/{project_id}/items/sku/{sku}
+-- @path /v2/project/{project_id}/items/sku/{sku}
 -- @name get_sellable_item_by_sku
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param sku (REQUIRED) Item SKU.
@@ -2346,6 +2965,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_sellable_item_by_sku(project_id, sku, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(sku)
@@ -2360,7 +2982,10 @@ function M.get_sellable_item_by_sku(project_id, sku, promo_code, show_inactive_t
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2369,13 +2994,11 @@ end
 -- Gets a sellable items list from the specified group for building a catalog.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields. 
---  Note
--- 
+-- Note
 -- In general, the use of catalog of items is available without authorization.
---  Only authorized users can get a personalized catalog.
--- /v2/project/{project_id}/items/group/{external_id}
+-- Only authorized users can get a personalized catalog.
+-- @path /v2/project/{project_id}/items/group/{external_id}
 -- @name get_sellable_items_group
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param external_id (REQUIRED) Group external ID.
@@ -2389,6 +3012,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_sellable_items_group(project_id, external_id, limit, offset, locale, additional_fields, country, promo_code, show_inactive_time_limited_items, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(external_id)
@@ -2408,7 +3034,10 @@ function M.get_sellable_items_group(project_id, external_id, limit, offset, loca
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
@@ -2417,9 +3046,8 @@ end
 -- Client endpoint. Gets the current user’s reward chains.
 -- 
 -- Attention
--- 
 -- All projects have the limitation to the number of items that you can get in the response. The default and maximum value is 50 items per response. To get more data page by page, use limit and offset fields.
--- /v2/project/{project_id}/user/reward_chain
+-- @path /v2/project/{project_id}/user/reward_chain
 -- @name get_reward_chains_list
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param limit Limit for the number of elements on the page.
@@ -2427,6 +3055,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_reward_chains_list(project_id, limit, offset, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -2439,20 +3070,26 @@ function M.get_reward_chains_list(project_id, limit, offset, callback, retry_pol
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Get current user&#x27;s value point balance
 -- Client endpoint. Gets the current user’s value point balance.
--- /v2/project/{project_id}/user/reward_chain/{reward_chain_id}/balance
+-- @path /v2/project/{project_id}/user/reward_chain/{reward_chain_id}/balance
 -- @name get_user_reward_chain_balance
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param reward_chain_id (REQUIRED) Reward chain ID.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_user_reward_chain_balance(project_id, reward_chain_id, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(reward_chain_id)
@@ -2465,14 +3102,17 @@ function M.get_user_reward_chain_balance(project_id, reward_chain_id, callback, 
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Claim step reward
 -- Client endpoint. Claims the current user’s step reward from a reward chain.
--- /v2/project/{project_id}/user/reward_chain/{reward_chain_id}/step/{step_id}/claim
+-- @path /v2/project/{project_id}/user/reward_chain/{reward_chain_id}/step/{step_id}/claim
 -- @name claim_user_reward_chain_step_reward
 -- @param project_id (REQUIRED) Project ID. You can find this parameter in your [Publisher Account](https://publisher.xsolla.com/) next to the name of the project.
 -- @param reward_chain_id (REQUIRED) Reward chain ID.
@@ -2480,6 +3120,9 @@ end
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.claim_user_reward_chain_step_reward(project_id, reward_chain_id, step_id, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(reward_chain_id)
@@ -2494,20 +3137,26 @@ function M.claim_user_reward_chain_step_reward(project_id, reward_chain_id, step
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "POST", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "POST", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Get top 10 contributors to reward chain under clan
 -- Retrieves the list of top 10 contributors to the specific reward chain under the current user&#x27;s clan. If a user doesn&#x27;t belong to a clan, the call returns an empty array.
--- /v2/project/{project_id}/user/clan/contributors/{reward_chain_id}/top
+-- @path /v2/project/{project_id}/user/clan/contributors/{reward_chain_id}/top
 -- @name get_user_clan_top_contributors
 -- @param project_id (REQUIRED) Project ID.
 -- @param reward_chain_id (REQUIRED) Reward chain ID.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.get_user_clan_top_contributors(project_id, reward_chain_id, callback, retry_policy, cancellation_token)
     assert(project_id)
     assert(reward_chain_id)
@@ -2520,19 +3169,25 @@ function M.get_user_clan_top_contributors(project_id, reward_chain_id, callback,
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "GET", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "GET", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
 
 --- Update current user&#x27;s clan
 -- Updates a current user&#x27;s clan via user attributes. Claims all rewards from reward chains that were not claimed for a previous clan and returns them in the response. If the user was in a clan and now is not — their inclusion in the clan will be revoked. If the user changed the clan — the clan will be changed.
--- /v2/project/{project_id}/user/clan/update
+-- @path /v2/project/{project_id}/user/clan/update
 -- @name user_clan_update
 -- @param project_id (REQUIRED) Project ID.
 -- @param callback
 -- @param retry_policy
 -- @param cancellation_token
+-- @note By default, the Xsolla Login User JWT (Bearer token) is used for authorization. You can try calling this endpoint with a test Xsolla Login User JWT token: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5NjIyMzQwNDgsImlzcyI6Imh0dHBzOi8vbG9naW4ueHNvbGxhLmNvbSIsImlhdCI6MTU2MjE0NzY0OCwidXNlcm5hbWUiOiJ4c29sbGEiLCJ4c29sbGFfbG9naW5fYWNjZXNzX2tleSI6IjA2SWF2ZHpDeEVHbm5aMTlpLUc5TmMxVWFfTWFZOXhTR3ZEVEY4OFE3RnMiLCJzdWIiOiJkMzQyZGFkMi05ZDU5LTExZTktYTM4NC00MjAxMGFhODAwM2YiLCJlbWFpbCI6InN1cHBvcnRAeHNvbGxhLmNvbSIsInR5cGUiOiJ4c29sbGFfbG9naW4iLCJ4c29sbGFfbG9naW5fcHJvamVjdF9pZCI6ImU2ZGZhYWM2LTc4YTgtMTFlOS05MjQ0LTQyMDEwYWE4MDAwNCIsInB1Ymxpc2hlcl9pZCI6MTU5MjR9.GCrW42OguZbLZTaoixCZgAeNLGH2xCeJHxl8u8Xn2aI`.
+-- 
+-- You can use the [Pay Station access token](https://developers.xsolla.com/api/pay-station/operation/create-token/) as an alternative.
 function M.user_clan_update(project_id, callback, retry_policy, cancellation_token)
     assert(project_id)
 
@@ -2543,7 +3198,10 @@ function M.user_clan_update(project_id, callback, retry_policy, cancellation_tok
 
     local post_data = nil
 
-    return http(callback, url_path, query_params, "PUT", post_data, retry_policy, cancellation_token, function(result, err)
+    local headers = {}
+    headers["Authorization"] = authorization.bearer
+
+    return http(callback, url_path, query_params, "PUT", headers, post_data, retry_policy, cancellation_token, function(result, err)
         return result, err
     end)
 end
