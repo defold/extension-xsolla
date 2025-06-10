@@ -4,6 +4,7 @@ log.print()
 
 local PROJECT_ID = "281706"
 local DEBUG_BEARER_TOKEN = nil
+local SANDBOX = true
 
 local function hide_toast(self, immediate)
 	local toast = gui.get_node("toast")
@@ -53,7 +54,7 @@ end
 local function create_order(self, item)
 	print("create_order")
 	local body = {
-		sandbox = true,
+		sandbox = SANDBOX,
 		quantity = 1,
 		settings = {
 			ui = {
@@ -152,7 +153,7 @@ local function buy_item(self, item)
 			return
 		end
 		pprint(order)
-		local url = "https://sandbox-secure.xsolla.com/paystation4/?token=" .. order.token
+		local url = shop.get_payment_url(order, SANDBOX)
 		print("Open paystation url", url)
 		sys.open_url(url, { target = "_blank" })
 

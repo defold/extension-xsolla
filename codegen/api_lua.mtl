@@ -85,6 +85,18 @@ function M.set_auth_for_cart(authorization_id, user)
     authorization.x_user = b64_encode(user)
 end
 
+--- get the payment url for an order
+-- @param order
+-- @param is_sandbox
+-- @return The payment url
+function M.get_payment_url(order, is_sandbox)
+    if is_sandbox then
+        return "https://sandbox-secure.xsolla.com/paystation4/?token=" .. order.token
+    else
+        return "https://secure.xsolla.com/paystation4/?token=" .. order.token
+    end
+end
+
 -- Private
 -- Run code within a coroutine
 -- @param fn The code to run
