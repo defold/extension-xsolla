@@ -72,6 +72,18 @@
         type: table
         desc: Optional cancellation token
 
+  - name: get_payment_url
+    type: function
+    desc: get the payment url for an order
+    parameters:
+      - name: order
+        type: table
+      - name: is_sandbox
+        type: boolean
+    returns:
+      - name: url
+        type: string
+
 #*****************************************************************************************************
 
 {{#paths}}
