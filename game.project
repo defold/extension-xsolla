@@ -10,5 +10,3 @@ main_collection = /example/example.collectionc
 [script]
 shared_state = 1
 
-[library]
-include_dirs = xsolla

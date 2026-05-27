@@ -33,7 +33,7 @@ end
 local function hide_spinner(self)
 	local spinner = gui.get_node("spinner")
 	gui.set_enabled(spinner, false)
-	gui.cancel_animation(spinner, gui.PROP_EULER)
+	gui.cancel_animations(spinner, gui.PROP_EULER)
 	gui.set_euler(spinner, vmath.vector3(0))
 end
 
